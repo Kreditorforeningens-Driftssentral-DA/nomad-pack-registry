@@ -20,26 +20,30 @@ job "[[ template "job_name" . ]]" {
       [[- end ]]
     }
 
-    [[- range $svc := .example.consul_services ]]
+    [[- if .example.consul_service | empty | not ]]
+      
+      [[- $svc := .example.consul_service ]]
+      [[- $res := .example.consul_sidecar_resources ]]
+      [[- $ups := .example.consul_upstreams ]]
 
     service {
       name = [[ $svc.name | toJson ]]
       port = [[ $svc.port | toJson ]]
-[[ cat "tags" "=" ($svc.tags|toPrettyJson) | print | indent 6 ]]
+      tags = [[ $svc.tags | toJson ]]
       connect {
         sidecar_task {
           resources {
-            cpu    = [[ $.example.consul_sidecar_resources.cpu ]]
-            memory = [[ $.example.consul_sidecar_resources.memory ]]
+            cpu = [[ default 100 $res.cpu ]]
+            memory = [[ default 32 $res.memory ]]
           }
         }
         sidecar_service {
-          [[- if $.example.consul_upstreams | empty | not ]]
+          [[- if $ups | empty | not ]]
           proxy {
-            [[- range $idx,$ups := $.example.consul_upstreams.services ]]
+            [[- range $idx,$dest := $ups.services ]]
             upstreams {
-              destination_name = [[ $ups | toJson ]]
-              local_bind_port  = [[ add $idx $.example.consul_upstreams.first_port ]]
+              destination_name = [[ $dest | toJson ]]
+              local_bind_port  = [[ add $idx $ups.port_start ]]
             }
             [[- end ]]
           }

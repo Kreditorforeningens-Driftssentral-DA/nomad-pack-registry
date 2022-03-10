@@ -38,17 +38,22 @@ variable "exposed_ports" {
 // Consul Services (main)
 /////////////////////////////////////////////////
 
-variable "consul_services" {
-  type = list(object({
+variable "consul_service" {
+  type = object({
     name = string
     port = string
     tags = list(string)
-  }))
+  })
+  default = {
+    name = "http-example"
+    port = "http"
+    tags = ["traefik.enable=false"]
+  }
 }
 
 variable "consul_upstreams" {
   type = object({
-    first_port = number
+    port_start = number
     services   = list(string)
   })
 }
@@ -58,10 +63,6 @@ variable "consul_sidecar_resources" {
     cpu    = number
     memory = number
   })
-  default = {
-    cpu = 100
-    memory = 32
-  }
 }
 
 /////////////////////////////////////////////////
