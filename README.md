@@ -5,6 +5,7 @@
 List of packs in this repository:
   
   * [Bitbucket-Runner](packs/bitbucket_runner/README.md)
+  * [Fluentbit](packs/fluentbit/README.md)
   * [Grafana](packs/grafana/README.md)
 
 ## Usage
