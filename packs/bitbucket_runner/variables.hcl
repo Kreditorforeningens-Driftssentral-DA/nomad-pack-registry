@@ -82,6 +82,12 @@ variable "resources" {
   }
 }
 
+variable "privileged" {
+  description = "Run docker-task in privileged mode."
+  type = bool
+  default = false
+}
+
 variable "environment" {
   description = "Custom environment variables."
   type = map(string)

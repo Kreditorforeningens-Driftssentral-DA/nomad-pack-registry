@@ -44,6 +44,7 @@
       
       config {
         image = [[ list .bitbucket_runner.image.name .bitbucket_runner.image.tag | join ":" | print | toJson ]]
+        privileged = [[ .bitbucket_runner.privileged ]]
 
         [[- range $mount := .bitbucket_runner.mounts ]]
         
