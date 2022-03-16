@@ -28,7 +28,7 @@ scrape_configs:
   static_configs:
   - targets: [fluentbit:2020]
 
-- job_name: minio
+- job_name: minio # name used by minio console as well
   metrics_path: /minio/v2/metrics/cluster
   scheme: http
   static_configs:

@@ -14,7 +14,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 75M
+          memory: 100M
     ports: ["9090:9090"]
     command: ["--config.file=/prometheus.yaml"]
 
@@ -27,16 +27,19 @@ services:
     deploy:
       resources:
         limits:
-          memory: 125M
+          memory: 150M
     ports: ["9001:9001"]
     volumes:
     - type: volume
       source: minio
       target: /exports
     environment:
+      #MINIO_BROWSER: 'off'
       MINIO_ROOT_USER: lokiadmin
       MINIO_ROOT_PASSWORD: lokiadmin
       MINIO_PROMETHEUS_AUTH_TYPE: public
+      MINIO_PROMETHEUS_URL: http://prometheus:9090
+      MINIO_PROMETHEUS_JOB_ID: minio
     command: ["server","/exports","--console-address=:9001"]
 
   loki:
@@ -49,8 +52,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 75M
-    command: ["-config.file=/loki.yaml","-config.expand-env=true"]
+          memory: 100M
+    command: ["-config.file=/loki.yaml","-config.expand-env=true","-log-config-reverse-order"]
   
   fluentbit:
     image: local/fluentbit:dev
