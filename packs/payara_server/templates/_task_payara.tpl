@@ -17,6 +17,23 @@
 
       [[- end ]]
 
+      [[- range $artifact := .payara_server.artifacts ]]
+      
+      artifact {
+        source = [[ $artifact.source | toJson ]]
+        destination = [[ $artifact.destination | toJson ]]
+        mode = [[ $artifact.mode | toJson ]]
+        [[- if not $artifact.options | empty ]]
+        options {
+          [[- range $k,$v := $artifact.options ]]
+          [[ $k ]] = [[ $v | toJson ]]
+          [[- end ]]
+        }
+        [[- end ]]
+      }
+
+      [[- end ]]
+
       [[- if not .payara_server.environment_variables | empty ]]
       
       env {

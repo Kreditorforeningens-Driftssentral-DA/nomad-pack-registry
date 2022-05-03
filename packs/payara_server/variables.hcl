@@ -118,6 +118,15 @@ variable "resources" {
   }
 }
 
+variable "artifacts" {
+  type = list(object({
+    source      = string
+    destination = string
+    mode        = string
+    options     = map(string)
+  }))
+}
+
 variable "environment_variables" {
   description = "Environment variables."
   type = map(string)
@@ -136,7 +145,7 @@ variable "files" {
     content  = string
   }))
   default = [{
-    filename  = "local/config/info.txt"
+    filename  = "local/info.txt"
     mount = "/tmp/info.txt"
     content = <<-HEREDOC
     This is just an example file, rendered to {{ env "NOMAD_TASK_DIR" }}/config/info.txt.
