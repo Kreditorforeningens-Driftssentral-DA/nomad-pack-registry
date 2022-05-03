@@ -7,7 +7,9 @@
 ## Example config
 
 ```hcl
+//////////////////////////////////
 // NOMAD JOB settings
+//////////////////////////////////
 
 job_name = "demo-amq"
 
@@ -40,7 +42,9 @@ exposed_ports = [{
   static = -1
 }]
 
+//////////////////////////////////
 // CONSUL service settings
+//////////////////////////////////
 
 consul_services = [{
   name = "amq-webui"
@@ -58,7 +62,9 @@ consul_services = [{
   upstreams = []
 }]
 
+//////////////////////////////////
 // ACTIVEMQ task settings
+//////////////////////////////////
 
 environment = {
   ACTIVEMQ_DATA = "/alloc/data"
@@ -68,6 +74,7 @@ files = [{
   name = "/local/activemq.xml"
   content = <<HEREDOC
 #..add XML-config here..
+HEREDOC
 }
 
 mounts = [{
