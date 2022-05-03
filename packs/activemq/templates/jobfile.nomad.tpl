@@ -6,7 +6,7 @@ job "[[ template "job_name" . ]]" {
   [[- template "datacenters" . ]]
   [[- template "namespace" . ]]
 
-  [[- if .payara_server.constraints ]][[ range $idx, $constraint := .payara_server.constraints ]]
+  [[- if .activemq.constraints ]][[ range $idx, $constraint := .activemq.constraints ]]
 
   constraint {
     attribute = [[ $constraint.attribute | toJson ]]
@@ -20,27 +20,27 @@ job "[[ template "job_name" . ]]" {
   [[- end ]][[ end ]]
 
   group "main" {
-    count = [[ .payara_server.scale ]]
+    count = [[ .activemq.scale ]]
 
     meta {
-    [[- range $k,$v := .payara_server.meta ]]
+    [[- range $k,$v := .activemq.meta ]]
       [[ $k ]] = [[ $v | toJson]]
     [[- end ]]
     }
 
-    [[- if .payara_server.ephemeral_disk ]]
+    [[- if .activemq.ephemeral_disk ]]
     
     ephemeral_disk {
-      migrate = [[ .payara_server.ephemeral_disk.migrate ]]
-      size = [[ .payara_server.ephemeral_disk.size ]]
-      sticky  = [[ .payara_server.ephemeral_disk.sticky ]]
+      migrate = [[ .activemq.ephemeral_disk.migrate ]]
+      sticky  = [[ .activemq.ephemeral_disk.sticky ]]
+      size = [[ .activemq.ephemeral_disk.size ]]
     }
 
     [[- end ]]
     
     network {
       mode = "bridge"
-      [[- range $port := .payara_server.exposed_ports ]]
+      [[- range $port := .activemq.exposed_ports ]]
       port [[ $port.name | toJson ]] {
         to = [[ $port.target ]]
         [[- if gt $port.static 0 ]]
@@ -50,7 +50,7 @@ job "[[ template "job_name" . ]]" {
       [[- end ]]
     }
 
-    [[- range $service := .payara_server.consul_services ]]
+    [[- range $service := .activemq.consul_services ]]
 
     service {
       name = [[ $service.name | toJson ]]
@@ -58,35 +58,33 @@ job "[[ template "job_name" . ]]" {
       tags = [[ $service.tags | toJson ]]
       connect {
         sidecar_service {
-          
           proxy {
             [[- range $upstream := $service.upstreams ]]
             upstreams {
               destination_name = [[ $upstream.service | toJson ]]
-              local_bind_port = [[ $upstream.local_port | toJson ]]
+              local_bind_port  = [[ $upstream.local_port | toJson ]]
             }
             [[- end ]]
           }
         }
-        [[- if not $service.sidecar_resources | empty ]]
         sidecar_task {
           resources {
-            cpu = [[ $service.sidecar_resources.cpu ]]
-            memory = [[ $service.sidecar_resources.memory ]]
+            cpu = [[ default 100 $service.sidecar_cpu ]]
+            memory = [[ default 128 $service.sidecar_memory ]]
           }
         }
-        [[- end ]]
       }
     }
-
     [[- end ]]
 
-    [[- template "task_payara" . ]]
-    [[- if .payara_server.task_enabled_maven ]]
-    [[- template "task_maven" . ]]
+    [[- template "task_activemq" . ]]
+    
+    [[- if .activemq.task_enabled_postgres ]]
+    [[- template "task_postgres" . ]]
     [[- end ]]
-    [[- if .payara_server.task_enabled_fluentbit ]]
-    [[- template "task_fluentbit" . ]]
+
+    [[- if .activemq.task_enabled_adminer ]]
+    [[- template "task_adminer" . ]]
     [[- end ]]
   }
 }
