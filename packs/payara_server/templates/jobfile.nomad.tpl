@@ -22,6 +22,12 @@ job "[[ template "job_name" . ]]" {
   group "main" {
     count = [[ .payara_server.scale ]]
 
+    meta {
+    [[- range $k,$v := .payara_server.meta ]]
+      [[ $k ]] = [[ $v | toJson]]
+    [[- end ]]
+    }
+
     [[- if .payara_server.ephemeral_disk ]]
     
     ephemeral_disk {
@@ -81,7 +87,7 @@ job "[[ template "job_name" . ]]" {
     [[- end ]]
 
     [[- template "task_payara" . ]]
-    [[- if .payara_server.task_enabled_fluentbit_maven ]]
+    [[- if .payara_server.task_enabled_maven ]]
     [[- template "task_maven" . ]]
     [[- end ]]
     [[- if .payara_server.task_enabled_fluentbit ]]

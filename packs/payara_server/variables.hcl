@@ -23,6 +23,13 @@ variable "scale" {
   default = 1
 }
 
+variable "meta" {
+  type = map(string)
+  default = {
+    "deployment-id" = "0"
+  }
+}
+
 variable "exposed_ports" {
   type = list(object({
     name   = string
