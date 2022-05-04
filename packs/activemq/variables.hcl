@@ -30,6 +30,20 @@ variable "meta" {
   }
 }
 
+variable "constraints" {
+  description = "Constraints to apply to the entire job."
+  type = list(object({
+    attribute = string
+    operator  = string
+    value     = string
+  }))
+  default = [{
+    attribute = "$${attr.kernel.name}"
+    value = "linux"
+    operator = ""
+  }]
+}
+
 variable "ephemeral_disk" {
   type = object({
     migrate = bool
