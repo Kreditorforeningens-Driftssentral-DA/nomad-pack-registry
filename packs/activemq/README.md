@@ -208,7 +208,9 @@ scrape_configs:
   - source_labels: [__meta_consul_service_metadata_metrics_prometheus_port]
     regex: (.+)
     action: keep
-    # Replace scraped port to host-address for scraping
+    # Set target address for scraping.
+    # Group 1: host from <host:port>
+    # Group 2: port (from metadata)
   - source_labels: [__address__,__meta_consul_service_metadata_metrics_prometheus_port]
     regex: ([^:]+)(?::\d+)?;(\d+)
     replacement: ${1}:${2}

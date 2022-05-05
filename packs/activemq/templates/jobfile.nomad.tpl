@@ -58,9 +58,15 @@ job "[[ template "job_name" . ]]" {
       [[- if not $service.tags | empty ]]
       tags = [[ $service.tags | toJson ]][[ end ]]
       [[- if not $service.meta | empty ]]
-      meta = [[ $service.meta | toJson ]][[- end ]]
+      meta = {
+      [[- range $k,$v := $service.meta ]]
+        [[ $k ]] = [[$v | toJson]]
+      [[- end ]]
+      }
+      [[- end ]]
       connect {
         sidecar_service {
+          [[- if not $service.upstreams | empty ]]
           proxy {
             [[- range $upstream := $service.upstreams ]]
             upstreams {
@@ -69,6 +75,7 @@ job "[[ template "job_name" . ]]" {
             }
             [[- end ]]
           }
+          [[- end ]]
         }
         sidecar_task {
           resources {
