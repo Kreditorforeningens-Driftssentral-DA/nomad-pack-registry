@@ -58,7 +58,7 @@ job "[[ template "job_name" . ]]" {
       [[- if not $service.tags | empty ]]
       tags = [[ $service.tags | toJson ]][[ end ]]
       [[- if not $service.meta | empty ]]
-      meta = {
+      meta {
       [[- range $k,$v := $service.meta ]]
         [[ $k ]] = [[$v | toJson]]
       [[- end ]]
