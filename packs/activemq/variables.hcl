@@ -59,12 +59,8 @@ variable "exposed_ports" {
     static = number
   }))
   default = [{
-    name = "webui"
+    name = "webadmin"
     target = 8161
-    static = -1
-  },{
-    name = "openwire"
-    target = 61616
     static = -1
   }]
 }
@@ -78,6 +74,7 @@ variable "consul_services" {
     name = string
     port = string
     tags = list(string)
+    meta = map(string)
     sidecar_cpu    = number
     sidecar_memory = number
     upstreams = list(object({
@@ -89,8 +86,9 @@ variable "consul_services" {
     name = "amq-openwire"
     port = "61616"
     tags = ["traefik.enable=false"]
+    meta = {}
     sidecar_cpu = 100
-    sidecar_memory = 128
+    sidecar_memory = 64
     upstreams = []
   }]
 }
@@ -112,8 +110,8 @@ variable "resources" {
   })
   default = {
     cpu = 100
-    memory = 512
-    memory_max = 512
+    memory = 384
+    memory_max = 768
   }
 }
 
@@ -167,9 +165,9 @@ variable "postgres_resources" {
     memory_max = number
   })
   default = {
-    cpu = 100
+    cpu = 50
     memory = 64
-    memory_max = 128
+    memory_max = 64
   }
 }
 
@@ -197,7 +195,73 @@ variable "adminer_image" {
   default = "adminer:standalone"
 }
 
+variable "adminer_resources" {
+  type = object({
+    cpu        = number
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 50
+    memory = 32
+    memory_max = 32
+  }
+}
+
 variable "adminer_default_server" {
   type = string
   default = "localhost:5432"
+}
+
+/////////////////////////////////////////////////
+// TASK telegraf (metrics)
+/////////////////////////////////////////////////
+
+variable "task_enabled_telegraf" {
+  type = bool
+  default = false
+}
+
+variable "telegraf_image" {
+  type = string
+  default = "telegraf:latest"
+}
+
+variable "telegraf_resources" {
+  type = object({
+    cpu        = number
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 50
+    memory = 64
+    memory_max = 64
+  }
+}
+
+variable "telegraf_credentials" {
+  type = object({
+    activemq_username = string
+    activemq_password = string
+    activemq_webadmin = string
+  })
+  default = {
+    activemq_username = "admin"
+    activemq_password = "admin"
+    activemq_webadmin = "admin" // ActiveMQ webadmin root path
+  }
+}
+
+variable "telegraf_config" {
+  type = string
+  default = <<-HEREDOC
+  [[outputs.prometheus_client]]
+    listen = ":9273"
+  [[inputs.activemq]]
+    url = "http://localhost:8161"
+    username = "$${ACTIVEMQ_USERNAME}"
+    password = "$${ACTIVEMQ_PASSWORD}"
+    webadmin = "$${ACTIVEMQ_WEBADMIN}"
+  HEREDOC
 }

@@ -21,7 +21,7 @@
 
       resources {
         cpu = 50
-        memory = 32
+        memory = 64
       }
 
       [[- if not .activemq.postgres_environment | empty ]]

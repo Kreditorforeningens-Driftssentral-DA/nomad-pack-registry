@@ -55,7 +55,10 @@ job "[[ template "job_name" . ]]" {
     service {
       name = [[ $service.name | toJson ]]
       port = [[ $service.port | toJson ]]
-      tags = [[ $service.tags | toJson ]]
+      [[- if not $service.tags | empty ]]
+      tags = [[ $service.tags | toJson ]][[ end ]]
+      [[- if not $service.meta | empty ]]
+      meta = [[ $service.meta | toJson ]][[- end ]]
       connect {
         sidecar_service {
           proxy {
@@ -85,6 +88,10 @@ job "[[ template "job_name" . ]]" {
 
     [[- if .activemq.task_enabled_adminer ]]
     [[- template "task_adminer" . ]]
+    [[- end ]]
+
+    [[- if .activemq.task_enabled_telegraf ]]
+    [[- template "task_telegraf" . ]]
     [[- end ]]
   }
 }

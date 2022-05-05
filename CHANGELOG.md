@@ -1,10 +1,10 @@
 # CHANGELOG
 
-## May 3, 2022
+## May 5, 2022
 
 NOMAD-PACK: [ACTIVEMQ](packs/activemq/README.md)
 
-  * Initial releaseactivemq ([changelog](packs/activemq/CHANGELOG.md))
+  * Added optional task "telegraf" ([changelog](packs/activemq/CHANGELOG.md))
 
 ---
 

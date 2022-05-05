@@ -14,7 +14,7 @@
 
       resources {
         cpu = 100
-        memory = 64
+        memory = 32
       }
 
       env {

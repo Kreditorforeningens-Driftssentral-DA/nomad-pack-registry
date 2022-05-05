@@ -2,9 +2,10 @@
 
 ## Features
 
-* Optional tasks: postgres (w/init-waiter), adminer
+* Optional tasks: postgres (w/init-waiter), adminer, telegraf
 
 ## Example use
+
 ```hcl
 # Pack-commands
 nomad-pack plan --name=demo-amq -f ./example.hcl packs/activemq
@@ -20,8 +21,9 @@ nomad-pack stop --purge --name=demo-amq -f ./example.hcl packs/activemq
 
 job_name = "demo-amq"
 
-#task_enabled_postgres = true
-#task_enabled_adminer = true
+task_enabled_postgres = false
+task_enabled_adminer  = false
+task_enabled_telegraf = true
 
 meta = {
   "deployment-id" = "2022-05-03.3" // Forces re-deploy
@@ -29,19 +31,23 @@ meta = {
 
 resources = {
   cpu = 100 // Soft-limit
-  memory = 512 // Soft-limit
+  memory = 384 // Soft-limit
   memory_max = 1024 // Hard-limit
 }
 
 ephemeral_disk = {
   sticky  = true
   migrate = true
-  size    = 1000
+  size    = 500
 }
 
 exposed_ports = [{
   name = "web"
   target = 8161
+  static = -1
+},{
+  name = "metrics"
+  target = 9273
   static = -1
 }]
 
@@ -50,20 +56,43 @@ exposed_ports = [{
 //////////////////////////////////
 
 consul_services = [{
-  name = "amq-web"
+  name = "queue-admin"
   port = "8161"
   tags = ["traefik.enable=true"]
-  sidecar_cpu = 100
+  meta = {}
+  sidecar_cpu = 50
   sidecar_memory = 64
   upstreams = []
 },{
-  name = "amq-autoTransport"
+  name = "queue-auto"
   port = "5671"
   tags = ["traefik.enable=false"]
-  sidecar_cpu = 100
-  sidecar_memory = 128
+  meta = {}
+  sidecar_cpu = 50
+  sidecar_memory = 64
+  upstreams = []
+},{
+  name = "metrics-prometheus"
+  port = "9273"
+  tags = ["traefik.enable=false"]
+  meta = {
+    metrics_prometheus_port = "$${NOMAD_HOST_PORT_metrics}"
+    metrics_prometheus_path = "/metrics"
+  }
+  sidecar_cpu = 50
+  sidecar_memory = 32
   upstreams = []
 }]
+
+//////////////////////////////////
+// TELEGRAF task settings
+//////////////////////////////////
+
+telegraf_credentials = {
+  activemq_username = "batman"
+  activemq_password = "manbat"
+  activemq_webadmin = "admin"
+}
 
 //////////////////////////////////
 // ACTIVEMQ task settings
@@ -160,3 +189,28 @@ mounts = [{
 
 ```
 
+## Scraping prometheus metrics (via jolokia/telegraf)
+
+```yaml
+# Example prometheus scrape config, using consul metadata
+# See https://discuss.hashicorp.com/t/monitoring-sidecar-and-gateways-using-prometheus/31187/2
+---
+scrape_configs:
+- job_name: consul-prometheus-metrics
+  consul_sd_configs:
+  - server: 'http://172.17.0.1:8500'
+  relabel_configs:
+    # Drop sidecar-services from evaluation
+  - source_labels: [__meta_consul_service]
+    regex: (.+)-sidecar-proxy
+    action: drop
+    # Get port from service metadata
+  - source_labels: [__meta_consul_service_metadata_metrics_prometheus_port]
+    regex: (.+)
+    action: keep
+    # Replace scraped port to host-address for scraping
+  - source_labels: [__address__,__meta_consul_service_metadata_metrics_prometheus_port]
+    regex: ([^:]+)(?::\d+)?;(\d+)
+    replacement: ${1}:${2}
+    target_label: __address__
+```
