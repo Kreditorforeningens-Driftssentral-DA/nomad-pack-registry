@@ -58,8 +58,8 @@
       
       resources {
         cpu = [[ default 100 .activemq.postgres_resources.cpu ]]
-        memory = [[ default 384 .activemq.postgres_resources.memory ]]
-        memory_max = [[ default 384 .activemq.postgres_resources.memory_max ]]
+        memory = [[ default 128 .activemq.postgres_resources.memory ]]
+        memory_max = [[ default 128 .activemq.postgres_resources.memory_max ]]
       }
 
       [[- end ]]

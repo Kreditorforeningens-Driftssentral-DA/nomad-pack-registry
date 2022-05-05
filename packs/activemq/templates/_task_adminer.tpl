@@ -13,8 +13,9 @@
       }
 
       resources {
-        cpu = 100
-        memory = 32
+        cpu = [[ default 50 .activemq.adminer_resources.cpu ]]
+        memory = [[ default 32 .activemq.adminer_resources.memory ]]
+        memory = [[ default 32 .activemq.adminer_resources.memory_max ]]
       }
 
       env {

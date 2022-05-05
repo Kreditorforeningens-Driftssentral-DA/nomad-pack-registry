@@ -6,6 +6,7 @@
 
     task "activemq" {
       driver = "docker"
+      leader = true
       
       [[- if .activemq.resources ]]
       

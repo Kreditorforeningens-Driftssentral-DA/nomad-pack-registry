@@ -13,8 +13,9 @@
       }
 
       resources {
-        cpu = 50
-        memory = 64
+        cpu = [[ default 50 .activemq.telegraf_resources.cpu ]]
+        memory = [[ default 32 .activemq.telegraf_resources.memory ]]
+        memory_max = [[ default 32 .activemq.telegraf_resources.memory_max ]]
       }
 
       [[- if not .activemq.telegraf_credentials | empty ]]
@@ -33,6 +34,8 @@
         destination = "/local/telegraf.conf"
         data = [[ .activemq.telegraf_config | toJson ]]
       }
+
+      user = "telegraf" // req. due to setpriv
 
       config {
         image = [[ .activemq.telegraf_image | toJson ]]
