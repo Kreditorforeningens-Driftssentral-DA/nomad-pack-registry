@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## May 6, 2022
+
+NOMAD-PACK: [PROMETHEUS](packs/prometheus/README.md)
+
+  * New pack "prometheus" ([changelog](packs/prometheus/CHANGELOG.md))
+
+---
 ## May 5, 2022
 
 NOMAD-PACK: [ACTIVEMQ](packs/activemq/README.md)
