@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## May 7, 2022
+
+NOMAD-PACK: [LOKI](packs/loki/README.md)
+
+  * New pack "prometheus" ([changelog](packs/loki/CHANGELOG.md))
+
 ## May 6, 2022
 
 NOMAD-PACK: [PROMETHEUS](packs/prometheus/README.md)

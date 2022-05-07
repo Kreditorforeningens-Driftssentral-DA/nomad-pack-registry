@@ -1,0 +1,1 @@
+Job [[ .loki.job_name | toJson ]]  (Pack: [[ .nomad_pack.pack.name | toJson  ]]) deployed successfully!
