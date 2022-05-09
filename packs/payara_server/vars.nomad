@@ -70,10 +70,11 @@ payara_image = "kdsda/payara:5.2022.2-jdk11-main"
 
 payara_resources = {
   cpu = 100
-  cpu_hard_limit = false
   memory = 384
   memory_max = 768
 }
+
+#payara_cpu_hard_limit = true
 
 payara_artifacts = [{
   source = "https://raw.githubusercontent.com/aeimer/java-example-helloworld-war/master/dist/helloworld.war"

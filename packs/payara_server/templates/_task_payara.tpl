@@ -12,7 +12,6 @@
       
       resources {
         cpu = [[ $resources.cpu ]]
-        cpu_hard_limit = [[ $resources.cpu_hard_limit ]]
         memory = [[ $resources.memory ]]
         memory_max = [[ $resources.memory_max ]]
       }
@@ -71,7 +70,9 @@
       
       config {
         image = [[ .payara_server.payara_image | toJson ]]
-        
+        [[- if .payara_server.payara_cpu_hard_limit ]]
+        cpu_hard_limit = true[[ end ]]
+
         [[- range $mount := .payara_server.payara_custom_mounts ]]
         
         mount {

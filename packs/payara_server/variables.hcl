@@ -146,16 +146,19 @@ variable "payara_image" {
 variable "payara_resources" {
   type = object({
     cpu            = number
-    cpu_hard_limit = bool
     memory         = number
     memory_max     = number
   })
   default = {
     cpu = 100
-    cpu_hard_limit = false
     memory = 768
     memory_max = 768
   }
+}
+
+variable "payara_cpu_hard_limit" {
+  type = bool
+  default = false
 }
 
 variable "payara_artifacts" {
