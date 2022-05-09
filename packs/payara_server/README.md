@@ -27,12 +27,12 @@ exposed_ports = [{
 ephemeral_disk = {
   migrate = true
   sticky  = true
-  size    = 5000
+  size    = 2000
 }
 
 resources = {
   cpu        = 500
-  memory     = 512
+  memory     = 768
   memory_max = 2048
 }
 
@@ -43,8 +43,13 @@ environment_variables = {
   SCRIPT_DIR             = "/local/scripts"
   PATH_PREBOOT_COMMANDS  = "/local/pre-boot-commands.asadmin"
   PATH_POSTBOOT_COMMANDS = "/local/post-boot-commands.asadmin"
-  ASADMIN_DEPLOY_DIR     = "/alloc/maven"
-  JAVA_TOOL_OPTIONS      = "-XX:MaxRAMPercentage=80.0 -XX:InitialRAMPercentage=25.0 -XX:+ExitOnOutOfMemoryError"
 }
+
+// Only required if not exposing application-port on host. NOTE: Service health-checks are "automatically" exposed 
+#consul_exposes = [{
+#  name = "prometheus-metrics"
+#  port = 8080
+#  path = "/metrics"
+#}]
 
 ```

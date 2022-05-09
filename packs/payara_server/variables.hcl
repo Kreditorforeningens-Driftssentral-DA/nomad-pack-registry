@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////
-// Job
+// SCHEDULING
 /////////////////////////////////////////////////
 
 variable "job_name" {
@@ -8,6 +8,11 @@ variable "job_name" {
 
 variable "datacenters" {
   type = list(string)
+  default = ["dc1"]
+}
+
+variable "region" {
+  type = string
 }
 
 variable "namespace" {
@@ -15,7 +20,7 @@ variable "namespace" {
 }
 
 /////////////////////////////////////////////////
-// GROUP variables
+// GROUP payara
 /////////////////////////////////////////////////
 
 variable "scale" {
@@ -30,7 +35,7 @@ variable "meta" {
   }
 }
 
-variable "exposed_ports" {
+variable "ports" {
   type = list(object({
     name   = string
     target = number
@@ -43,10 +48,6 @@ variable "exposed_ports" {
   },{
     name = "admin"
     target = 4848
-    static = -1
-  },{
-    name = "debug"
-    target = 9009
     static = -1
   }]
 }
@@ -73,59 +74,91 @@ variable "constraints" {
   }]
 }
 
-/////////////////////////////////////////////////
-// CONSUL services
-/////////////////////////////////////////////////
+//////////////////////////////////
+// CONSUL payara
+//////////////////////////////////
 
-variable "consul_services" {
-  type = list(object({
+variable "consul_service" {
+  type = object({
     name = string
     port = string
-    tags = list(string)
-    upstreams = list(object({
-      service    = string
-      local_port = number
-    }))
-    sidecar_resources = object({
-      cpu    = number
-      memory = number
-    })
-  }))
-  default = [{
+  })
+  default = {
     name = "http-payara"
     port = "8080"
-    tags = ["traefik.enable=false"]
-    upstreams = []
-    sidecar_resources = {
-      cpu = 100
-      memory = 128
-    }
-  }]
+  }
+}
+
+variable "consul_service_tags" {
+  type = list(string)
+  default = []
+}
+
+variable "consul_service_meta" {
+  type = map(string)
+  default = {}
+}
+
+variable "consul_sidecar_resources" {
+  type = object({
+    cpu    = number
+    memory = number
+  })
+  default = {
+    cpu    = 50
+    memory = 50
+  }
+}
+
+variable "consul_checks" {
+  type = list(object({
+    name   = string
+    port   = string
+    path   = string
+    expose = bool
+  }))
+}
+
+variable "consul_upstreams" {
+  type = list(object({
+    name      = string
+    bind_port = number
+  }))
+}
+
+variable "consul_exposes" {
+  type = list(object({
+    name = string // Name of the port (will be created)
+    port = number // target task-port
+    path = string // path to expose
+  }))
 }
 
 /////////////////////////////////////////////////
-// TASK variables (payara)
+// TASK payara
 /////////////////////////////////////////////////
 
-variable "image" {
+variable "payara_image" {
   type = string
   default = "kdsda/payara:5.2022.2-jdk11-main"
 }
 
-variable "resources" {
+variable "payara_resources" {
   type = object({
-    cpu        = number
-    memory     = number
-    memory_max = number
+    cpu            = number
+    cpu_hard_limit = bool
+    memory         = number
+    memory_max     = number
   })
   default = {
-    cpu = 500
-    memory = 512
-    memory_max = 512
+    cpu = 100
+    cpu_hard_limit = false
+    memory = 768
+    memory_max = 768
   }
 }
 
-variable "artifacts" {
+variable "payara_artifacts" {
   type = list(object({
     source      = string
     destination = string
@@ -134,41 +167,33 @@ variable "artifacts" {
   }))
 }
 
-variable "environment_variables" {
+variable "payara_environment_vars" {
   description = "Environment variables."
   type = map(string)
 }
 
-variable "environment_file" {
+variable "payara_environment_file" {
   description = "Environment template-file written to secrets-folder."
   type = string
 }
 
-variable "files" {
-  description = "Custom file to render at startup. Optionally mount/overwrite files in the container using the 'mount' parameter."
+variable "payara_custom_files" {
+  description = "Custom file to render at startup."
   type = list(object({
-    filename = string
-    mount    = string
-    content  = string
+    destination = string
+    data        = string
   }))
-  default = [{
-    filename  = "local/info.txt"
-    mount = "/tmp/info.txt"
-    content = <<-HEREDOC
-    This is just an example file, rendered to {{ env "NOMAD_TASK_DIR" }}/config/info.txt.
-      - If "mount" is defined, the file will be mounted to specified path inside container image.
-    Examples:
-      - NOMAD_JOB_NAME = {{ env "NOMAD_JOB_NAME" }}
-      - 1 x $ with {} = Not allowed (ref. to variables when using packs)
-      - 2 x $ with {} = $${NOMAD_JOB_NAME} > pass to nomad-server for substitution at runtime
-      - 3 x $ with {} = $$${NOMAD_JOB_NAME} > write literal "$" in rendered file
-    Preferably this should reference e.g. vault and/or consul.
-    HEREDOC
-  }]
+}
+
+variable "payara_custom_mounts" {
+  type = list(object({
+    source = string
+    target = string
+  }))
 }
 
 /////////////////////////////////////////////////
-// TASK variables (maven)
+// TASK maven
 /////////////////////////////////////////////////
 
 variable "task_enabled_maven" {
@@ -206,7 +231,7 @@ variable "maven_artifacts" {
 }
 
 /////////////////////////////////////////////////
-// TASK variables (fluent-bit)
+// TASK fluent-bit
 /////////////////////////////////////////////////
 
 variable "task_enabled_fluentbit" {

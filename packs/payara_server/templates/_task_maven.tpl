@@ -63,6 +63,7 @@
               artifact_id: [[ $artifact.name | toJson ]]
               extension: [[ $artifact.extension | toJson ]]
               version: [[ $artifact.version | toJson ]]
+              mode: 0666
               keep_name: false
               verify_checksum: always
           [[- end ]]

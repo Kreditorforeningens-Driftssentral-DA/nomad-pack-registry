@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## May 9, 2022
+
+NOMAD-PACK: [PAYARA_SERVER](packs/payara_server/README.md)
+  * Tweaks & fixes (v0.0.2)
+
 ## May 7, 2022
 
 NOMAD-PACK: [LOKI](packs/loki/README.md)

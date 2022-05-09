@@ -6,18 +6,20 @@
 
     task "payara" {
       driver = "docker"
+      leader = true
       
-      [[- if .payara_server.resources ]]
+      [[- if $resources := .payara_server.payara_resources ]]
       
       resources {
-        cpu = [[ .payara_server.resources.cpu ]]
-        memory = [[ .payara_server.resources.memory ]]
-        memory_max = [[ .payara_server.resources.memory_max ]]
+        cpu = [[ $resources.cpu ]]
+        cpu_hard_limit = [[ $resources.cpu_hard_limit ]]
+        memory = [[ $resources.memory ]]
+        memory_max = [[ $resources.memory_max ]]
       }
 
       [[- end ]]
 
-      [[- range $artifact := .payara_server.artifacts ]]
+      [[- range $artifact := .payara_server.payara_artifacts ]]
       
       artifact {
         source = [[ $artifact.source | toJson ]]
@@ -34,51 +36,51 @@
 
       [[- end ]]
 
-      [[- if not .payara_server.environment_variables | empty ]]
+      [[- if $env := .payara_server.payara_environment_vars ]]
       
       env {
-        [[- range $k,$v := .payara_server.environment_variables ]]
+        [[- range $k,$v := $env ]]
         [[ $k ]] = [[ $v | toJson ]]
         [[- end ]]
       }
 
       [[- end ]]
 
-      [[- if not .payara_server.environment_file | empty ]]
+      [[- if $data := .payara_server.payara_environment_file ]]
       
       template {
         change_mode = "restart"
         env = true
         perms = "440"
         destination = "${NOMAD_SECRETS_DIR}/job.env"
-        data = [[ .payara_server.environment_file | toJson ]]
+        data = [[ $data | toJson ]]
       }
 
       [[- end ]]
 
-      [[- range $file := .payara_server.files ]]
+      [[- range $file := .payara_server.payara_custom_files ]]
       
       template {
         change_mode = "restart"
-        perms = "644"
-        destination = "[[ $file.filename ]]"
-        data = [[ $file.content | toJson ]]
+        perms = "444"
+        destination = "[[ $file.destination ]]"
+        data = [[ $file.data | toJson ]]
       }
       
       [[- end ]]
       
       config {
-        image = [[ .payara_server.image | toJson ]]
+        image = [[ .payara_server.payara_image | toJson ]]
         
-        [[- range $file := .payara_server.files ]][[ if not $file.mount | empty ]]
+        [[- range $mount := .payara_server.payara_custom_mounts ]]
         
         mount {
           type   = "bind"
-          source = [[ $file.filename | toJson ]]
-          target = [[ $file.mount | toJson ]]
+          source = [[ $mount.source | toJson ]]
+          target = [[ $mount.target | toJson ]]
         }
         
-        [[- end ]][[ end ]]
+        [[- end ]]
       }
     }
 
