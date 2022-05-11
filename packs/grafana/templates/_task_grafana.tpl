@@ -63,7 +63,7 @@
         [[- if .grafana.grafana_resources.cpu_strict ]]
         cpu_hard_limit = true[[ end ]]
 
-        [[- if $memory_max := .grafana.grafana_resources.memory_max ]]
+        [[- if (ge $memory_max := .grafana.grafana_resources.memory_max .grafana.grafana_resources.memory) ]]
         memory_hard_limit = [[ $memory_max ]][[ end ]]
 
         [[- range $mount := .grafana.grafana_mounts ]]
