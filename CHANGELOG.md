@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## May 12, 2022
+  * [GRAFANA](packs/grafana/README.md): See [CHANGELOG.md](packs/grafana/CHANGELOG.md) (Author: [RR])
+
 ## May 11, 2022
   * [ACTIVEMQ](packs/activemq/README.md): See [CHANGELOG.md](packs/activemq/CHANGELOG.md)
   * [EXAMPLE](packs/example/README.md): Cleanup & updated
@@ -24,3 +27,5 @@
 ## May 3, 2022
   * [PAYARA_SERVER](packs/payara_server/README.md): Added artifact-stanza for payara task. Initial release ([changelog](packs/payara_server/CHANGELOG.md))
 ---
+
+[RR]: rune.ronneseth@kred.no

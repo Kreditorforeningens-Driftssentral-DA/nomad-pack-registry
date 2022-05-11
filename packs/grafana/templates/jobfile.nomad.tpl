@@ -1,74 +1,58 @@
 job "[[ template "job_name" . ]]" {
-  [[- template "datacenters" . ]]
+  datacenters = [[ .grafana.datacenters | toStringList ]]
+  
+  [[- if $namespace := .grafana.namespace ]]
+  namespace = [[ $namespace | toJson ]][[ end ]]
+  
+  [[- if $region := .grafana.region ]]
+  region = [[ $region | toJson ]][[ end ]]
 
-  type      = "service"
-  priority  = [[ .grafana.priority ]]
-  namespace = [[ .grafana.namespace | toJson ]]  
-  region    = [[ .grafana.region | toJson ]]
-
-  [[- if .grafana.constraints ]][[ range $idx, $constraint := .grafana.constraints ]]
+  [[- range $constraint := .grafana.constraints ]]
 
   constraint {
     attribute = [[ $constraint.attribute | toJson ]]
     value     = [[ $constraint.value | toJson ]]
-
-    [[- if ne $constraint.operator "" ]]
-    operator  = [[ $constraint.operator | toJson ]]
-    [[- end ]]
+    
+    [[- if $constraint.operator ]]
+    operator  = [[ $constraint.operator | toJson ]][[ end ]]
   }
 
-  [[- end ]][[ end ]]
+  [[- end ]]
 
   group "main" {
 
     network {
       mode = "bridge"
-      [[- if gt .grafana.http_port 0 ]]
-      port "http" {
-        to = [[ .grafana.http_port ]]
+
+      [[- range $port := .grafana.ports ]]
+      port [[ $port.label | toJson ]] {
+        to = [[ $port.to ]]
+        
+        [[- if gt $port.static 0 ]]
+        static = [[ $port.static ]][[ end ]]
+      }
+      [[- end ]]
+      
+      [[- range $port := .grafana.connect_exposes ]]
+      port [[ $port.port_label | toJson ]] {
+        to = -1
       }
       [[- end ]]
     }
 
-    [[- if not .grafana.ephemeral_disk | empty ]]
+    [[- if $disk := .grafana.ephemeral_disk ]]
 
     ephemeral_disk {
-      migrate = [[ .grafana.ephemeral_disk.migrate ]]
-      sticky = [[ .grafana.ephemeral_disk.sticky ]]
-      size = [[ .grafana.ephemeral_disk.size ]]
+      migrate = [[ $disk.migrate ]]
+      sticky = [[ $disk.sticky ]]
+      size = [[ $disk.size ]]
     }
 
     [[- end ]]
 
-    [[- if not .grafana.consul_service | empty ]]
+    [[- if .grafana.consul_services ]]
+    [[- template "consul_services" . ]][[ end ]]
     
-    service {
-      port = [[ .grafana.consul_service.port ]]
-      name = [[ .grafana.consul_service.name | toJson ]]
-      tags = [[ .grafana.consul_service.tags | toJson ]]
-      connect {
-        sidecar_task {
-          resources {
-            cpu    = [[ .grafana.consul_service.sidecar_cpu ]]
-            memory = [[ .grafana.consul_service.sidecar_memory ]]
-          }
-        }
-        sidecar_service {
-          [[- if not .grafana.consul_service.upstreams | empty ]]
-          proxy {
-            [[- range $upstream := .grafana.consul_service.upstreams ]]
-            upstreams {
-              destination_name = [[ $upstream.service | toJson ]]
-              local_bind_port  = [[ $upstream.port ]]
-            }
-            [[- end ]]
-          }
-          [[- end ]]
-        }
-      }
-    }
-
-    [[- end ]]
     [[- template "task_grafana" . ]]
   }
 }

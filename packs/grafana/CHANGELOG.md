@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## Unreleased
+  * Refactor & exstend. Breaks w/previous versions. Verify variables! ([RR])
+
 ## v0.0.2 (May 5, 2022)
   * Cleanup/simplify pack ([RR])
 ---

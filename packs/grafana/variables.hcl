@@ -35,8 +35,8 @@ variable "constraints" {
   description = "Constraints to apply to the entire job."
   type = list(object({
     attribute = string
-    operator = string
-    value = string
+    operator  = string
+    value     = string
   }))
   default = [{
     attribute = "$${attr.kernel.name}",
@@ -45,14 +45,18 @@ variable "constraints" {
   }]
 }
 
-//////////////////////////////////
-// GROUP
-//////////////////////////////////
-
-variable "http_port" {
+variable "ports" {
   description = "Target port to expose on host. Set to -1 to disable."
-  type    = number
-  default = 3000
+  type    = list(object({
+    label  = string
+    to     = number
+    static = number
+  }))
+  default = [{
+    label = "console"
+    to = 3000
+    static = -1
+  }]
 }
 
 variable "ephemeral_disk" {
@@ -68,63 +72,92 @@ variable "ephemeral_disk" {
 // CONSUL
 //////////////////////////////////
 
-variable "consul_service" {
+variable "consul_services" {
   description = "Consul-connect sidecar services."
-  type = object({
+  type = list(object({
     port = number
     name = string
     tags = list(string)
     sidecar_cpu = number
     sidecar_memory = number
-    upstreams = list(object({
-      service = string
-      port = number
-    }))
-  })
+  }))
 }
+
+variable "connect_upstreams" {
+  type = list(object({
+    name       = string
+    local_port = number
+  }))
+}
+
+variable "connect_exposes" {
+  type = list(object({
+    port_label = string
+    local_port = number
+    path       = string
+  }))
+}
+
 
 //////////////////////////////////
 // TASK grafana
 //////////////////////////////////
 
-variable "resources" {
-  description = "The resources to assign the task."
-  type = object({
-    cpu        = number
-    memory     = number
-    memory_max = number
-  })
-  default = {
-    cpu = 100
-    memory = 384
-    memory_max = 384
-  }
-}
-
-variable "image" {
+variable "grafana_image" {
   description = "The container image used by the task."
   type = string
   default = "grafana/grafana:latest"
 }
 
-variable "environment" {
+variable "grafana_resources" {
+  description = "The resources to assign the task."
+  type = object({
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 100
+    cpu_strict = false
+    memory = 384
+    memory_max = -1
+  }
+}
+
+variable "grafana_environment" {
+  description = "Will be added to task environment-variables."
   type = map(string)
   default = {
-    GF_PATHS_CONFIG       = "/local/grafana.ini"
+    GF_PATHS_CONFIG       = "/local/grafana.default.ini"
     GF_PATHS_PROVISIONING = "/local/provisioning"
     GF_PATHS_DATA         = "/local/grafana"
     GF_INSTALL_PLUGINS    = "grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel"
   }
 }
 
-variable "files" {
+variable "grafana_mounts" {
   type = list(object({
-    target  = string
-    content = string
+    source = string
+    target = string
   }))
   default = [{
-    target = "/local/grafana.ini"
-    content = <<-EOH
+    source = "local/grafana.ini"
+    target = "/etc/grafana/conf/grafana.ini"
+  }]
+}
+
+variable "grafana_files" {
+  description = "This string will be written to file at target destination. Setting b64encoded will encrypt the content in job-definition."
+  type = list(object({
+    destination = string
+    b64encode   = bool
+    data        = string
+  }))
+  default = [{
+    destination = "/local/grafana.default.ini"
+    b64encode = false
+    data = <<-EOH
       instance_name = grafana
       [security]
         admin_user = grafana
@@ -138,16 +171,12 @@ variable "files" {
   }]
 }
 
-variable "mounts" {
+variable "grafana_files_local" {
+  description = "Write files to target destination from local file. Path is relative to working folder. Setting b64encoded will encrypt the content in job-definition."
   type = list(object({
-    type   = string
-    source = string
-    target = string
+    destination = string
+    b64encode   = bool
+    filename    = string
   }))
-  default = [{
-    type   = "bind"
-    source = "local/grafana.ini"
-    target = "/etc/grafana/conf/grafana.ini"
-  }]
 }
 

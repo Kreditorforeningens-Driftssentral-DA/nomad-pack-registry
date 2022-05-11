@@ -8,10 +8,3 @@
 [[- end ]]
 [[- end ]]
 
-//////////////////////////////////
-// TEMPLATE datacenters
-//////////////////////////////////
-
-[[- define "datacenters" ]]
-[[ cat "datacenters" "=" (.grafana.datacenters|toPrettyJson) | print | indent 2 ]]
-[[- end ]]
