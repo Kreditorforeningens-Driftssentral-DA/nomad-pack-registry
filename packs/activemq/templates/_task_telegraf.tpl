@@ -12,11 +12,16 @@
         sidecar = true
       }
 
+      [[- if $res := .activemq.telegraf_resources ]]
+      
       resources {
-        cpu = [[ default 50 .activemq.telegraf_resources.cpu ]]
-        memory = [[ default 32 .activemq.telegraf_resources.memory ]]
-        memory_max = [[ default 32 .activemq.telegraf_resources.memory_max ]]
+        cpu = [[ $res.cpu ]]
+        memory = [[ $res.memory ]]
+        [[- if ge $res.memory_max $res.memory]]
+        memory_max = [[ $res.memory_max ]][[ end ]]
       }
+
+      [[- end ]]
 
       [[- if not .activemq.telegraf_credentials | empty ]]
 

@@ -1,94 +1,72 @@
-/////////////////////////////////////////////////
-// Nomad job start ([[ template "job_name" . ]])
-/////////////////////////////////////////////////
-
 job "[[ template "job_name" . ]]" {
-  [[- template "datacenters" . ]]
-  [[- template "namespace" . ]]
+  datacenters = [[ .activemq.datacenters | toStringList ]]
+  
+  [[- if $namespace := .activemq.namespace ]]
+  namespace = [[ $namespace | toJson ]][[ end ]]
+  
+  [[- if $region := .activemq.region ]]
+  region = [[ $region | toJson ]][[ end ]]
 
-  [[- if .activemq.constraints ]][[ range $idx, $constraint := .activemq.constraints ]]
+  [[- range $constraint := .activemq.constraints ]]
 
   constraint {
-    attribute = [[ $constraint.attribute | toJson ]]
-    value = [[ $constraint.value | toJson ]]
-
-    [[- if ne $constraint.operator "" ]]
-    operator = [[ $constraint.operator | toJson ]]
-    [[- end ]]
+    [[- if $constraint.attribute ]]
+    attribute = [[ $constraint.attribute | toJson ]][[ end ]]
+    [[- if $constraint.operator ]]
+    operator = [[ $constraint.operator | toJson ]][[ end ]]
+    [[- if $constraint.value ]]
+    value = [[ $constraint.value | toJson ]][[ end ]]
   }
 
-  [[- end ]][[ end ]]
+  [[- end ]]
 
   group "main" {
-    count = [[ .activemq.scale ]]
+    [[- if  $scale := .activemq.scale ]]
+    count = [[ $scale ]][[ end ]]
 
+    [[- if $meta := .activemq.meta ]]
+    
     meta {
-    [[- range $k,$v := .activemq.meta ]]
+    [[- range $k,$v := $meta ]]
       [[ $k ]] = [[ $v | toJson]]
     [[- end ]]
     }
 
-    [[- if .activemq.ephemeral_disk ]]
+    [[- end ]]
+
+    [[- if $disk := .activemq.ephemeral_disk ]]
     
     ephemeral_disk {
-      migrate = [[ .activemq.ephemeral_disk.migrate ]]
-      sticky  = [[ .activemq.ephemeral_disk.sticky ]]
-      size = [[ .activemq.ephemeral_disk.size ]]
+      migrate = [[ $disk.migrate ]]
+      sticky  = [[ $disk.sticky ]]
+      size = [[ $disk.size ]]
     }
 
     [[- end ]]
     
     network {
       mode = "bridge"
-      [[- range $port := .activemq.exposed_ports ]]
-      port [[ $port.name | toJson ]] {
-        to = [[ $port.target ]]
+      [[- range $port := .activemq.ports ]]
+      port [[ $port.label | toJson ]] {
+        to = [[ $port.to ]]
         [[- if gt $port.static 0 ]]
         static = [[ $port.static ]]
         [[- end ]]
       }
       [[- end ]]
-    }
-
-    [[- range $service := .activemq.consul_services ]]
-
-    service {
-      name = [[ $service.name | toJson ]]
-      port = [[ $service.port | toJson ]]
-      [[- if not $service.tags | empty ]]
-      tags = [[ $service.tags | toJson ]][[ end ]]
-      [[- if not $service.meta | empty ]]
-      meta {
-      [[- range $k,$v := $service.meta ]]
-        [[ $k ]] = [[$v | toJson]]
-      [[- end ]]
+      [[- range $port := .activemq.consul_exposes ]]
+      port [[ $port.port_label | toJson ]] {
+        to = -1
       }
       [[- end ]]
-      connect {
-        sidecar_service {
-          [[- if not $service.upstreams | empty ]]
-          proxy {
-            [[- range $upstream := $service.upstreams ]]
-            upstreams {
-              destination_name = [[ $upstream.service | toJson ]]
-              local_bind_port  = [[ $upstream.local_port | toJson ]]
-            }
-            [[- end ]]
-          }
-          [[- end ]]
-        }
-        sidecar_task {
-          resources {
-            cpu = [[ default 100 $service.sidecar_cpu ]]
-            memory = [[ default 128 $service.sidecar_memory ]]
-          }
-        }
-      }
     }
-    [[- end ]]
 
-    [[- template "task_activemq" . ]]
-    
+    [[- if .activemq.consul_service ]]
+    [[- template "consul_service" . ]][[ end ]]
+
+    [[- if .activemq.consul_services ]]
+    [[- template "consul_services" . ]][[ end ]]
+
     [[- if .activemq.task_enabled_postgres ]]
     [[- template "task_postgres" . ]]
     [[- end ]]
@@ -100,5 +78,7 @@ job "[[ template "job_name" . ]]" {
     [[- if .activemq.task_enabled_telegraf ]]
     [[- template "task_telegraf" . ]]
     [[- end ]]
+
+    [[- template "task_activemq" . ]]
   }
 }

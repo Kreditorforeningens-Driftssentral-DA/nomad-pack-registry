@@ -1,33 +1,22 @@
 /////////////////////////////////////////////////
-// JOB
+// SCHEDULING
 /////////////////////////////////////////////////
 
 variable "job_name" {
   type = string
 }
 
-variable "datacenters" {
-  type = list(string)
-}
-
 variable "namespace" {
   type = string
 }
 
-/////////////////////////////////////////////////
-// GROUP main
-/////////////////////////////////////////////////
-
-variable "scale" {
-  type = number
-  default = 1
+variable "region" {
+  type = string
 }
 
-variable "meta" {
-  type = map(string)
-  default = {
-    "deployment-id" = "0"
-  }
+variable "datacenters" {
+  type = list(string)
+  default = ["dc1"]
 }
 
 variable "constraints" {
@@ -52,15 +41,27 @@ variable "ephemeral_disk" {
   })
 }
 
-variable "exposed_ports" {
+variable "scale" {
+  type = number
+  default = 1
+}
+
+variable "meta" {
+  type = map(string)
+  default = {
+    "deployment-id" = "1981-05.v11"
+  }
+}
+
+variable "ports" {
   type = list(object({
-    name   = string
-    target = number
+    label  = string
+    to     = number
     static = number
   }))
   default = [{
-    name = "webadmin"
-    target = 8161
+    label = "console"
+    to = 8161
     static = -1
   }]
 }
@@ -69,71 +70,113 @@ variable "exposed_ports" {
 // CONSUL services
 /////////////////////////////////////////////////
 
+variable "consul_service" {
+  description = "Primary consul service. Handles upstreams and connect-exposes."
+  type = object({
+    name = string
+    port = string
+  })
+}
+
+variable "consul_tags" {
+  description = "Primary consul service tags."
+  type = list(string)
+}
+
+variable "consul_meta" {
+  description = "Primary consul metadata."
+  type = map(string)
+}
+
+variable "consul_upstreams" {
+  description = "Primary consul service upstreams"
+  type = list(object({
+    name       = string
+    local_port = number
+  }))
+}
+
+variable "consul_exposes" {
+  description = "Primary consul service exposes."
+  type = list(object({
+    path       = string
+    local_port = number
+    port_label = string
+  }))
+}
+
+variable "consul_sidecar_resources" {
+  description = "Primary consul service resources."
+  type = object({
+    cpu    = number
+    memory = number
+  })
+  default = {
+    cpu = 50
+    memory = 75
+  }
+}
+
 variable "consul_services" {
+  description = "Extra consul services."
   type = list(object({
     name = string
     port = string
     tags = list(string)
     meta = map(string)
-    sidecar_cpu    = number
+    sidecar_cpu = number
     sidecar_memory = number
-    upstreams = list(object({
-      name       = string
-      local_port = number
-    }))
   }))
-  default = [{
-    name = "amq-openwire"
-    port = "61616"
-    tags = ["traefik.enable=false"]
-    meta = {}
-    sidecar_cpu = 100
-    sidecar_memory = 64
-    upstreams = []
-  }]
 }
 
 /////////////////////////////////////////////////
 // TASK activemq
 /////////////////////////////////////////////////
 
-variable "image" {
+variable "activemq_image" {
   type = string
   default = "ghcr.io/kreditorforeningens-driftssentral-da/container-image-activemq:5.17.1"
 }
 
-variable "resources" {
+variable "activemq_image_pull" {
+  description = "Force pulling new image."
+  type = bool
+}
+
+variable "activemq_resources" {
   type = object({
     cpu        = number
+    cpu_strict = bool
     memory     = number
     memory_max = number
   })
   default = {
     cpu = 100
-    memory = 384
-    memory_max = 768
+    cpu_strict = false
+    memory = 512
+    memory_max = -1
   }
 }
 
-variable "environment" {
+variable "activemq_environment" {
   type = map(string)
 }
 
-variable "files" {
+variable "activemq_custom_files" {
   type = list(object({
-    name      = string
-    content   = string
+    name = string
+    data = string
   }))
   default = [{
     name = "/local/info.txt"
-    content = <<-EOH
+    data = <<-EOH
     This is just an example file, rendered to {{ env "NOMAD_TASK_DIR" }}/config/info.txt.
     Example: NOMAD_JOB_NAME = {{ env "NOMAD_JOB_NAME" }}
     EOH
   }]
 }
 
-variable "mounts" {
+variable "activemq_custom_mounts" {
   type = list(object({
     source = string
     target = string
@@ -235,6 +278,7 @@ variable "telegraf_resources" {
   })
   default = {
     cpu = 50
+    cpu_strict = false
     memory = 64
     memory_max = 64
   }
