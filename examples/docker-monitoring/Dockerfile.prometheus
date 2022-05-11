@@ -1,3 +1,0 @@
-FROM quay.io/prometheus/prometheus:latest
-
-COPY --chmod="777" ["files/prometheus.yaml","/prometheus.yaml"]

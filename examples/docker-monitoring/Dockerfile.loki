@@ -1,3 +1,0 @@
-FROM grafana/loki:latest
-
-COPY --chmod="777" ["files/loki.s3.yaml","/loki.yaml"]

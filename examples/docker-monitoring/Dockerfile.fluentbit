@@ -1,3 +1,0 @@
-FROM fluent/fluent-bit:latest
-
-COPY --chmod="777" ["files/fluentbit.conf","/fluentbit.conf"]

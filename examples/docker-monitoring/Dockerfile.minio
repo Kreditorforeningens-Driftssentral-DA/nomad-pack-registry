@@ -1,4 +1,0 @@
-FROM quay.io/minio/minio:latest
-
-RUN set -ex \
-  && mkdir -p /exports/loki

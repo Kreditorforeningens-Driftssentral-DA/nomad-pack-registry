@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////
-// Job
+// SCHEDULING
 /////////////////////////////////////////////////
 
 variable "job_name" {
@@ -8,110 +8,111 @@ variable "job_name" {
 
 variable "datacenters" {
   type = list(string)
+  default = ["dc1"]
 }
 
 variable "namespace" {
   type = string
 }
 
-/////////////////////////////////////////////////
-// Group (main)
-/////////////////////////////////////////////////
-
-variable "scale" {
-  type = number
-  default = 1
+variable "region" {
+  type = string
 }
 
-variable "exposed_ports" {
+/////////////////////////////////////////////////
+// GROUP
+/////////////////////////////////////////////////
+
+
+variable "ports" {
   type = list(object({
-    name = string
-    target = number
+    label  = string
+    to     = number
+    static = number
   }))
   default = [{
-    name = "http"
-    target = 80
+    label = "http"
+    to = 80
+    static = -1
   }]
 }
 
 /////////////////////////////////////////////////
-// Consul Services (main)
+// CONSUL
 /////////////////////////////////////////////////
 
 variable "consul_service" {
   type = object({
-    name = string
-    port = string
-    tags = list(string)
+    name    = string
+    port    = string
+    connect = bool
   })
   default = {
-    name = "http-example"
-    port = "http"
-    tags = ["traefik.enable=false"]
+    name = "http-nginx"
+    port = "80"
+    connect = true
   }
 }
 
-variable "consul_upstreams" {
-  type = object({
-    port_start = number
-    services   = list(string)
-  })
+variable "consul_tags" {
+  type = list(string)
 }
 
-variable "consul_sidecar_resources" {
+variable "consul_meta" {
+  type = map(string)
+}
+
+variable "consul_checks_disabled" {
+  type = bool
+}
+
+
+variable "consul_resources" {
   type = object({
     cpu    = number
     memory = number
   })
+  default = {
+    cpu = 50
+    memory = 50
+  }
+}
+
+variable "consul_upstreams" {
+  type = list(object({
+    name       = string
+    local_port = number
+  }))
+}
+
+variable "consul_exposes" {
+  type = list(object({
+    path       = string
+    local_port = number
+    port_label = string
+  }))
 }
 
 /////////////////////////////////////////////////
-// Task web (main)
+// TASK nginx
 /////////////////////////////////////////////////
 
-variable "image" {
+variable "nginx_image" {
   type = string
   default = "nginx:alpine"
 }
 
-variable "resources" {
+variable "nginx_resources" {
   type = object({
-    cpu = number
-    memory = number
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
     memory_max = number
   })
   default = {
-    cpu = 100
-    memory = 32
-    memory_max = 64
+    cpu        = 100
+    cpu_strict = false
+    memory     = 50
+    memory_max = 100
   }
-}
-
-variable "files" {
-  type = list(object({
-    name      = string
-    b64encode = bool
-    content   = string
-  }))
-  default = [{
-    name = "/local/config/info.txt"
-    b64encode = false
-    content = <<-EOH
-      Hello!
-      This is just an example file, rendered to {{ env "NOMAD_TASK_DIR" }}/config/info.txt.
-      If you set the 'b64encode' parameter, template functions in file will not be used.
-      Example: NOMAD_JOB_NAME = {{ env "NOMAD_JOB_NAME" }}
-      EOH
-  }]
-}
-
-variable "mounts" {
-  type = list(object({
-    source = string
-    target = string
-  }))
-  default = [{
-    source = "local/config"
-    target = "/tmp/config"
-  }]
 }
