@@ -1,6 +1,7 @@
 /////////////////////////////////////////////////
 // CONSUL service
 /////////////////////////////////////////////////
+
 [[- define "consul_service" ]]
 
     [[- $service   := .my.consul_service ]]
@@ -47,7 +48,7 @@
       [[- if $service.connect ]]
       
       connect {
-        sidecar_service = {
+        sidecar_service {
           [[- if (or $upstreams $exposes) ]]
           proxy {
             [[- if $exposes ]]
