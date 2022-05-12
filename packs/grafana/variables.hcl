@@ -78,6 +78,7 @@ variable "consul_services" {
     port = number
     name = string
     tags = list(string)
+    meta = map(string)
     sidecar_cpu = number
     sidecar_memory = number
   }))
@@ -97,7 +98,6 @@ variable "connect_exposes" {
     path       = string
   }))
 }
-
 
 //////////////////////////////////
 // TASK grafana

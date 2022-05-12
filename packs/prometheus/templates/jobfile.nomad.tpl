@@ -3,6 +3,7 @@ job "[[ template "job_name" . ]]" {
   
   [[- if $namespace := .prometheus.namespace ]]
   namespace = [[ $namespace | toJson ]][[ end ]]
+  
   [[- if $region := .prometheus.region ]]
   region = [[ $region | toJson ]][[ end ]]
 
@@ -15,12 +16,12 @@ job "[[ template "job_name" . ]]" {
   }
   [[- end ]]
 
-  group "prometheus" {
+  group "main" {
     count = [[ .prometheus.instances ]]
 
     restart {
-      interval = "15m"
-      attempts = 2
+      interval = "30m"
+      attempts = 3
       delay    = "15s"
       mode     = "fail"
     }
@@ -39,64 +40,37 @@ job "[[ template "job_name" . ]]" {
     ephemeral_disk {
       [[- if $disk.size ]]
       size = [[ $disk.size ]][[ end ]]
+      
       [[- if $disk.migrate ]]
       migrate = [[ $disk.migrate ]][[ end ]]
+      
       [[- if $disk.sticky ]]
       sticky = [[ $disk.sticky ]][[ end ]]
     }
+    
     [[- end ]]
     
     network {
       mode = "bridge"
-      [[- range $port := .prometheus.ports ]]
-      port [[ $port.name | toJson ]] {
-        to = [[ $port.to ]]
-        [[- if (gt $port.static 0) ]]
-        static = [[ $port.static ]][[- end ]]
-      }
-      [[- end ]]
-    }
-
-    [[- if ($service := .prometheus.consul_service) ]]
-
-    service {
-      [[- if $service.name ]]
-      name = [[ $service.name | toJson ]][[ end ]]
-      port = [[ $service.port | toJson ]]
-      tags = [[ $service.tags | toStringList ]]
       
-      [[- if ($meta := $service.meta) ]]
-      meta {
-        [[- range $k,$v := $meta ]]
-        [[ $k ]] = [[ $v | toJson ]]
-        [[- end ]]
+      [[- range $port := .prometheus.ports ]]
+      port [[ $port.label | toJson ]] {
+        to = [[ $port.to ]]
+        
+        [[- if gt $port.static 0 ]]
+        static = [[ $port.static ]][[ end ]]
       }
       [[- end ]]
-      connect {
-        [[- if (or (gt $service.sidecar_cpu 0) (gt $service.sidecar_memory 0)) ]]
-        sidecar_task {
-          resources {
-            cpu = 100
-            memory = 32
-          }
-        }
-        [[- end ]]
-        sidecar_service {}
+      
+      [[- range $port := .prometheus.connect_exposes ]]
+      port [[ $port.port_label | toJson ]] {
+        to = -1
       }
-      check {
-        name     = "alive"
-        type     = "http"
-        port     = [[ $service.port | toJson ]]
-        path     = "/-/healthy"
-        interval = "15s"
-        timeout  = "5s"
-        [[- if $service.expose_check]]
-        expose   = true
-        [[- end ]]
-      }
+      [[- end ]]
     }
 
-    [[- end ]]
+    [[- if .prometheus.consul_services ]]
+    [[- template "consul_services" . ]][[ end ]]
 
     [[- template "task_prometheus" . ]]
   }

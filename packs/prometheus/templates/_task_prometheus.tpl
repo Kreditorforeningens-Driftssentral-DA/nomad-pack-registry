@@ -8,59 +8,65 @@
       driver = "docker"
       leader = true
       
+      [[- if $res := .prometheus.prometheus_resources ]]
+      
       resources {
-        [[- $cpu     := .prometheus.resources.cpu ]]
-        [[- $mem     := .prometheus.resources.memory ]]
-        [[- $mem_max := .prometheus.resources.memory_max ]]
-        cpu = [[ $cpu ]]
-        memory = [[ $mem ]]
-        [[- if (ge $mem_max $mem) ]]
-        memory_max = [[ $mem_max ]][[ end ]]
+        cpu = [[ $res.cpu ]]
+        memory = [[ $res.memory ]]
+        
+        [[- if ge $res.memory_max $res.memory ]]
+        memory_max = [[ $res.memory_max ]][[ end ]]
       }
-      
-      [[- if $file := .prometheus.config ]]
-      
-      template {
-        change_mode = "restart"
-        perms = "444"
-        destination = "/local/prometheus.yml"
-        data = [[ $file | toJson ]]
-      }
-
       [[- end ]]
 
-      [[- range $file := .prometheus.custom_files ]]
+      [[- range $file := .prometheus.prometheus_files ]]
       
       template {
-        change_mode = "restart"
-        perms = "444"
         destination = [[ $file.destination | toJson ]]
-        data = [[ $file.data | toJson ]]
+        change_mode = "restart"
+        [[- if $file.b64encode ]]
+        data = {{ [[ $file.data | b64enc | toJson ]] | base64Decode }}
+        [[- else ]]
+        data = [[ $file.data | toJson]]
+        [[- end ]]
+        perms = "444"
       }
       
       [[- end ]]
       
+      [[- range $file := .prometheus.prometheus_files_local ]]
+
+      template {
+        destination = [[ $file.destination | toJson ]]
+        change_mode = "restart"
+        perms = "444"
+        [[- if $file.b64encode ]]
+        data = {{ [[ fileContents $file.filename | b64enc | toJson ]] | base64Decode }}
+        [[- else ]]
+        data = [[ fileContents $file.filename | toJson ]][[ end ]]
+      }
+
+      [[- end ]]
+
       config {
-        image = [[ .prometheus.image | toJson ]]
-        args = [[ .prometheus.args | toStringList ]]
+        image = [[ .prometheus.prometheus_image | toJson ]]
+        
+        [[- if $args := .prometheus.prometheus_args ]]
+        args = [[ $args | toStringList ]][[ end ]]
 
-        [[- if .prometheus.metrics_prometheus_config ]]
+        [[- if .prometheus.prometheus_resources.cpu_strict ]]
+        cpu_hard_limit = true[[ end ]]
 
-        mount {
-          type     = "bind"
-          readonly = true
-          source   = "local/prometheus.yml"
-          target   = "/etc/prometheus/prometheus.yml"
-        }
-        [[- end ]]
+        [[- if ge ($memory_max := .prometheus.prometheus_resources.memory_max) .prometheus.prometheus_resources.memory ]]
+        memory_hard_limit = [[ $memory_max ]][[ end ]]
 
-        [[- range $mount := .prometheus.custom_mounts ]]
+        [[- range $mount := .prometheus.prometheus_mounts ]]
         
         mount {
           type     = "bind"
-          readonly = true
           source   = [[ $mount.source | toJson ]]
           target   = [[ $mount.target | toJson ]]
+          readonly = true
         }
 
         [[- end ]]
