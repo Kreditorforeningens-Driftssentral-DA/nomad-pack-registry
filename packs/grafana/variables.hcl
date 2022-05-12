@@ -137,14 +137,11 @@ variable "grafana_environment" {
 }
 
 variable "grafana_mounts" {
+  description = "Mount files/folders to running container. Overwrites existing data (adds layer)."
   type = list(object({
     source = string
     target = string
   }))
-  default = [{
-    source = "local/grafana.ini"
-    target = "/etc/grafana/conf/grafana.ini"
-  }]
 }
 
 variable "grafana_files" {
