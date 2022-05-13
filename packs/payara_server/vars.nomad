@@ -1,150 +1,156 @@
-//////////////////////////////////
-// SCHEDULER
-//////////////////////////////////
+// Example file; defines all variables
+/////////////////////////////////////////////////
+// SCHEDULING
+/////////////////////////////////////////////////
 
-job_name = "demo-payara"
-
-constraints = [{
-  attribute = "$${attr.kernel.name}"
-  value = "linux"
-  operator = ""
-},{
-  attribute = ""
-  operator = "distinct_hosts"
-  value = "true"
-}]
-
-//////////////////////////////////
-// GROUP payara
-//////////////////////////////////
+job_name    = "demo-payara"
+datacenters = ["dc1"]
+region      = "global"
+namespace   = "default"
+scale       = 1
 
 meta = {
-  "deployment-id" = "2022-05.0"
+  "deployment-id" = "1981.05.v11"
 }
 
 ports = [{
-  name = "http"
+  label = "http"
   to = 8080
+  static = -1
+},{
+  label = "admin-console"
+  to = 4848
   static = -1
 }]
 
 ephemeral_disk = {
-  sticky = true
   migrate = false
-  size = 300
+  sticky  = false
+  size    = 300
 }
+
+constraints = [{
+  attribute = "$${attr.kernel.name}"
+  value     = "linux"
+  operator  = ""
+}]
 
 //////////////////////////////////
 // CONSUL payara
 //////////////////////////////////
 
-consul_service = {
-  name = "demo-http-payara"
-  port = "8080"
-}
-
-// Requires atleast 1 deployed application
-consul_checks = [{
-  name = "ready"
-  port = "http"
-  path = "/health"
-  expose = false
+consul_services = [{
+  port = 8080
+  name = "demo-payara-http"
+  tags = ["traefik.enable=false"]
+  meta = {
+    "metrics_prometheus_port" = "$${NOMAD_HOST_ADDR_prometheus}"
+  }
+  sidecar_cpu = 50
+  sidecar_memory = 50
 }]
 
-consul_service_tags = [
-  "traefik.enable=false",
-]
+connect_upstreams = [{
+  name = "loki-receiver"
+  local_port = 3100
+}]
 
-consul_service_meta = {
-  "metrics_prometheus_port" = "$${NOMAD_HOST_PORT_http}" // If using connect, expose a port using consul_exposes
-  "metrics_prometheus_path" = "/metrics"
-}
+connect_exposes   = [{
+  path = "/metrics"
+  port_label = "prometheus"
+  local_port = 2021
+}]
 
-consul_upstreams = []
-
-//////////////////////////////////
+/////////////////////////////////////////////////
 // TASK payara
-//////////////////////////////////
+/////////////////////////////////////////////////
 
 payara_image = "kdsda/payara:5.2022.2-jdk11-main"
 
 payara_resources = {
-  cpu = 100
-  memory = 384
-  memory_max = 768
+  cpu        = 100
+  cpu_strict = false
+  memory     = 750
+  memory_max = 750
 }
 
-#payara_cpu_hard_limit = true
+payara_artifacts        = []
+payara_environment      = {}
+payara_environment_file = ""
+payara_mounts           = []
+payara_files            = []
+payara_files_local      = []
 
-payara_artifacts = [{
-  source = "https://raw.githubusercontent.com/aeimer/java-example-helloworld-war/master/dist/helloworld.war"
-  destination = "/local/deploy/helloworld.war"
-  mode = "file"
-  options = {}
-}]
 
-payara_environment_vars = {
-  TZ                     = "Europe/Oslo"
-  LC_ALL                 = "nb_NO.ISO-8859-1"
-  PATH_POSTBOOT_COMMANDS = "/local/post-boot-commands.asadmin"
-}
-
-// https://github.com/payara/Payara-Server-Documentation/blob/master/documentation/payara-server/health-check-service/asadmin-commands.adoc#set-healthcheck-configuration
-// https://github.com/payara/Payara-Examples/tree/master/javaee
-payara_custom_files = [{
-  destination  = "/local/post-boot-commands.asadmin"
-  data = <<-HEREDOC
-  set-healthcheck-configuration --enabled=true --dynamic=true # Requires atleast 1 deployed/healthy application
-  deploy /local/deploy/helloworld.war
-  HEREDOC
-}]
-
-//////////////////////////////////
+/////////////////////////////////////////////////
 // TASK maven
-//////////////////////////////////
+/////////////////////////////////////////////////
 
-task_enabled_maven = false
+task_enabled_maven = true
 
 maven_image = "kdsda/ansible:2022.15"
 
+maven_resources = {
+  cpu        = 100
+  cpu_strict = true
+  memory     = 100
+  memory_max = 250
+}
+
 maven_auth = {
-  server = "https://repo1.maven.org"
-  username = "123"
-  password = "123"
+  server   = "https://repo1.maven.org"
+  username = "anonymous"
+  password = "anonymous"
 }
 
 maven_artifacts = []
 
-
-//////////////////////////////////
+/////////////////////////////////////////////////
 // TASK fluent-bit
-//////////////////////////////////
+/////////////////////////////////////////////////
 
 task_enabled_fluentbit = true
 
 fluentbit_image = "fluent/fluent-bit:latest"
 
-fluentbit_config = <<-HEREDOC
-[SERVICE]
-  Daemon      False
-  Http_Server False
-  Flush       5
-  Log_Level   Info
+fluentbit_resources = {
+  cpu        = 100
+  cpu_strict = false
+  memory     = 75
+  memory_max = 125
+}
 
-[INPUT]
-  Name             tail
-  Tag              payara.tail
-  Path             /alloc/logs/payara.stderr.*
-  Path_Key         filename
-  Read_From_Head   True
-  Skip_Long_Lines  True
-  Skip_Empty_Lines True
-  DB               /local/payara.stderr.db
-  DB.locking       True
-
-[OUTPUT]
-  Name  stdout
-  Match *
+// https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file
+fluentbit_config = <<HEREDOC
+---
+#env: {}
+service:
+  flush:       1
+  log_level:   warn
+  http_server: on
+pipeline:
+  inputs:
+  - cpu:
+      tag: demo.logs
+  - prometheus_scrape:
+      tag: demo.metrics
+      host: 127.0.0.1
+      port: {{ NOMAD_PORT_http }}
+      scrape_interval: 10s
+      metrics_path: /metrics
+  outputs:
+  - stdout:
+      match: *.logs
+  - loki:
+      match: *.logs
+      host: {{ NOMAD_UPSTREAM_IP_loki }}
+      port: {{ NOMAD_UPSTREAM_PORT_loki }}
+      labels: job=payara
+  - prometheus_exporter:
+      match: *.metrics
+      host: 0.0.0.0
+      port: {{ NOMAD_HOST_PORT_prometheus }}
+      add_label: color blue
 HEREDOC
 
 fluentbit_files = []

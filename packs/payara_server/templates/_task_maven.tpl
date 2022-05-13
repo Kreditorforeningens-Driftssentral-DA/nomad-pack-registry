@@ -4,8 +4,8 @@
 
 [[- define "task_maven" ]]
 
-    [[- $entrypoint_file := "${NOMAD_TASK_DIR}/docker-entrypoint.sh" ]]
-    [[- $playbook_file   := "${NOMAD_TASK_DIR}/playbook.yml" ]]
+    [[- $entrypoint := "${NOMAD_TASK_DIR}/docker-entrypoint.sh" ]]
+    [[- $playbook   := "${NOMAD_TASK_DIR}/playbook.yml" ]]
 
     task "maven" {
       driver = "docker"
@@ -15,16 +15,21 @@
         sidecar = false
       }
 
+      [[- if $res := .payara_server.maven_resources ]]
+      
       resources {
-        cpu = 100
-        memory = 128
-        memory_max = 384
+        cpu = [[ $res.cpu ]]
+        memory = [[ $res.memory ]]
+        [[- if ge $res.memory $res.memory_max ]]
+        memory_max = [[ $res.memory_max ]][[ end ]]
       }
       
+      [[- end ]]
+
       // Create inline startup-script
       template {
-        destination = [[ $entrypoint_file | toJson ]]
-        perms = "777"
+        destination = [[ $entrypoint | toJson ]]
+        perms = "550"
         data = <<-HEREDOC
         #!/usr/bin/env bash
         echo "[$(date)] ansible playbook start."
@@ -36,15 +41,15 @@
         if [["[["]] -z $(ansible-galaxy collection list|grep community.general) [["]]"]];then
           ansible-galaxy collection install community.general --upgrade
         fi
-        ansible-playbook [[ $playbook_file ]]
+        ansible-playbook [[ $playbook ]]
         echo "[$(date)] ansible playbook end."
         HEREDOC
       }
 
       // Create inline ansible playbook
       template {
-        destination = [[ $playbook_file | toJson ]]
-        perms = "640"
+        destination = [[ $playbook | toJson ]]
+        perms = "440"
         data = <<-HEREDOC
         ---
         - hosts: localhost
@@ -75,7 +80,10 @@
       
       config {
         image = [[ .payara_server.maven_image | toJson]]
-        entrypoint = [ [[ $entrypoint_file | toJson ]] ]
+        entrypoint = [ [[ $entrypoint | toJson ]] ]
+
+        [[- if .payara_server.maven_cpu_hard_limit ]]
+        cpu_hard_limit = true[[ end ]]
       }
     }
     

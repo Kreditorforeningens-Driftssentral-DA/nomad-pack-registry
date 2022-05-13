@@ -19,10 +19,6 @@ variable "namespace" {
   type = string
 }
 
-/////////////////////////////////////////////////
-// GROUP payara
-/////////////////////////////////////////////////
-
 variable "scale" {
   type = number
   default = 1
@@ -31,23 +27,23 @@ variable "scale" {
 variable "meta" {
   type = map(string)
   default = {
-    "deployment-id" = "0"
+    "deployment-id" = "1981.05.v11"
   }
 }
 
 variable "ports" {
   type = list(object({
-    name   = string
-    target = number
+    label  = string
+    to     = number
     static = number
   }))
   default = [{
-    name = "http"
-    target = 8080
+    label = "http"
+    to = 8080
     static = -1
   },{
-    name = "admin"
-    target = 4848
+    label = "admin"
+    to = 4848
     static = -1
   }]
 }
@@ -78,60 +74,43 @@ variable "constraints" {
 // CONSUL payara
 //////////////////////////////////
 
-variable "consul_service" {
-  type = object({
+variable "consul_services" {
+  description = "Consul services."
+  type = list(object({
+    port = number
     name = string
-    port = string
-  })
-  default = {
-    name = "http-payara"
-    port = "8080"
-  }
+    tags = list(string)
+    meta = map(string)
+    sidecar_cpu = number
+    sidecar_memory = number
+  }))
+  default = [{
+    port = 8080
+    name = "payara-http"
+    tags = []
+    meta = {}
+    sidecar_cpu = 50
+    sidecar_memory = 50
+  }]
 }
 
-variable "consul_service_tags" {
-  type = list(string)
+variable "connect_upstreams" {
+  description = "Consul connect upstreams. Managed by FIRST defined consul service."
+  type = list(object({
+    name       = string
+    local_port = number
+  }))
   default = []
 }
 
-variable "consul_service_meta" {
-  type = map(string)
-  default = {}
-}
-
-variable "consul_sidecar_resources" {
-  type = object({
-    cpu    = number
-    memory = number
-  })
-  default = {
-    cpu    = 50
-    memory = 50
-  }
-}
-
-variable "consul_checks" {
+variable "connect_exposes" {
+  description = "Consul connect exposed http-paths. Managed by FIRST defined consul service."
   type = list(object({
-    name   = string
-    port   = string
-    path   = string
-    expose = bool
+    port_label = string
+    local_port = number
+    path       = string
   }))
-}
-
-variable "consul_upstreams" {
-  type = list(object({
-    name      = string
-    bind_port = number
-  }))
-}
-
-variable "consul_exposes" {
-  type = list(object({
-    name = string // Name of the port (will be created)
-    port = number // target task-port
-    path = string // path to expose
-  }))
+  default = []
 }
 
 /////////////////////////////////////////////////
@@ -145,23 +124,21 @@ variable "payara_image" {
 
 variable "payara_resources" {
   type = object({
-    cpu            = number
-    memory         = number
-    memory_max     = number
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
   })
   default = {
     cpu = 100
+    cpu_strict = false
     memory = 768
     memory_max = 768
   }
 }
 
-variable "payara_cpu_hard_limit" {
-  type = bool
-  default = false
-}
-
 variable "payara_artifacts" {
+  description = "Download custom artifacts before starting task."
   type = list(object({
     source      = string
     destination = string
@@ -170,25 +147,36 @@ variable "payara_artifacts" {
   }))
 }
 
-variable "payara_environment_vars" {
+variable "payara_environment" {
   description = "Environment variables."
   type = map(string)
 }
 
 variable "payara_environment_file" {
-  description = "Environment template-file written to secrets-folder."
+  description = "Environment variables. Written to secrets-folder."
   type = string
 }
 
-variable "payara_custom_files" {
-  description = "Custom file to render at startup."
+variable "payara_files" {
+  description = "Custom file to render to disk at startup."
   type = list(object({
     destination = string
+    b64encode   = bool
     data        = string
   }))
 }
 
-variable "payara_custom_mounts" {
+variable "payara_files_local" {
+  description = "Custom file to render to disk at startup. Reads from local file."
+  type = list(object({
+    destination = string
+    b64encode   = bool
+    filename    = string
+  }))
+}
+
+variable "payara_mounts" {
+  description = "Mount/override file(s) to container (adds layer)."
   type = list(object({
     source = string
     target = string
@@ -205,8 +193,24 @@ variable "task_enabled_maven" {
 }
 
 variable "maven_image" {
+  description = "Container image containing Ansible (Core) required."
   type = string
   default = "kdsda/ansible:2022.15"
+}
+
+variable "maven_resources" {
+  type = object({
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 100
+    cpu_strict = false
+    memory = 128
+    memory_max = 384
+  }
 }
 
 variable "maven_auth" {
@@ -245,6 +249,21 @@ variable "task_enabled_fluentbit" {
 variable "fluentbit_image" {
   type = string
   default = "fluent/fluent-bit:latest"
+}
+
+variable "fluentbit_resources" {
+  type = object({
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 100
+    cpu_strict = false
+    memory = 100
+    memory_max = 100
+  }
 }
 
 variable "fluentbit_config" {

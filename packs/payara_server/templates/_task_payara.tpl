@@ -8,12 +8,13 @@
       driver = "docker"
       leader = true
       
-      [[- if $resources := .payara_server.payara_resources ]]
+      [[- if $res := .payara_server.payara_resources ]]
       
       resources {
-        cpu = [[ $resources.cpu ]]
-        memory = [[ $resources.memory ]]
-        memory_max = [[ $resources.memory_max ]]
+        cpu = [[ $res.cpu ]]
+        memory = [[ $res.memory ]]
+        [[- if ge $res.memory $res.memory_max ]]
+        memory_max = [[ $res.memory_max ]][[ end ]]
       }
 
       [[- end ]]
@@ -35,7 +36,7 @@
 
       [[- end ]]
 
-      [[- if $env := .payara_server.payara_environment_vars ]]
+      [[- if $env := .payara_server.payara_environment ]]
       
       env {
         [[- range $k,$v := $env ]]
@@ -51,29 +52,51 @@
         change_mode = "restart"
         env = true
         perms = "440"
-        destination = "${NOMAD_SECRETS_DIR}/job.env"
+        destination = "${NOMAD_SECRETS_DIR}/pack.env"
         data = [[ $data | toJson ]]
       }
 
       [[- end ]]
 
-      [[- range $file := .payara_server.payara_custom_files ]]
+      [[- range $file := .payara_server.payara_files ]]
       
       template {
         change_mode = "restart"
         perms = "444"
         destination = "[[ $file.destination ]]"
-        data = [[ $file.data | toJson ]]
+        
+        [[- if $file.b64encode ]]
+        data = {{ [[ $file.data | toJson ]] | base64Decode }}
+        
+        [[- else ]]
+        data = [[ $file.data | toJson ]][[ end ]]
+      }
+      
+      [[- end ]]
+
+      [[- range $file := .payara_server.payara_files_local ]]
+      
+      template {
+        change_mode = "restart"
+        perms = "444"
+        destination = "[[ $file.destination ]]"
+        
+        [[- if $file.b64encode ]]
+        data = {{ [[ fileContents $file.filename | b64enc | toJson ]] | base64Decode }}
+        
+        [[- else ]]
+        data = [[ fileContents $file.filename | toJson ]][[ end ]]
       }
       
       [[- end ]]
       
       config {
         image = [[ .payara_server.payara_image | toJson ]]
+        
         [[- if .payara_server.payara_cpu_hard_limit ]]
         cpu_hard_limit = true[[ end ]]
 
-        [[- range $mount := .payara_server.payara_custom_mounts ]]
+        [[- range $mount := .payara_server.payara_mounts ]]
         
         mount {
           type   = "bind"

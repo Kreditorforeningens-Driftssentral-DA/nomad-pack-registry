@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## May 13, 2022
+  * [PAYARA_SERVER](packs/payara_server/README.md): Tweaks & fixes.
+---
+
 ## May 12, 2022
   * [GRAFANA](packs/grafana/README.md): See [CHANGELOG.md](packs/grafana/CHANGELOG.md) (Author: [RR])
 
