@@ -12,7 +12,7 @@ Packs in this repository:
 | [Fluentbit](packs/fluentbit/README.md) | (latest) |
 | [Grafana](packs/grafana/README.md) | (latest) |
 | [Grafana Loki](packs/loki/README.md) | loki-v0.0.2 |
-| [Payara (server)](packs/payara_server/README.md) | payara_server-v0.0.3 |
+| [Payara (server)](packs/payara_server/README.md) | payara_server-v0.0.4 |
 | [Prometheus](packs/prometheus/README.md) | prometheus-v0.0.1 |
 
 ## Usage
