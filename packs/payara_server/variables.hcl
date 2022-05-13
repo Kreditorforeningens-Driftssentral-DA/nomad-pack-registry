@@ -273,13 +273,13 @@ variable "fluentbit_config" {
   ---
   service:
     daemon: off
-    http_server: off
-    flush: 1
+    flush: 3
     log_level: info
+    http_server: off
   pipeline:
     inputs:
     - cpu:
-        tag: 'demo.cpu'
+        tag: cpu.log
     outputs:
     - stdout:
         match: '*'
