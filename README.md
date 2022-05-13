@@ -27,11 +27,12 @@ nomad-pack destroy -name demo -var job_name=demo packs/example
 
 # Add (public) pack registry
 nomad-pack registry add -h
-nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry@latest
+nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry
 nomad-pack registry list
 
-# Verify
-nomad-pack render bitbucket_runner --registry=kred-public --ref=latest
+# Target specific version
+nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry --ref payara_server-v0.0.4 --target payara_server
+nomad-pack render payara_server --registry=kred-public
 ```
 
 ## References for writing packs
