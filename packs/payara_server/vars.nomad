@@ -16,7 +16,7 @@ meta = {
 ports = [{
   label = "http"
   to = 8080
-  static = -1
+  static = 8080
 },{
   label = "admin-console"
   to = 4848
@@ -36,7 +36,7 @@ constraints = [{
 }]
 
 //////////////////////////////////
-// CONSUL payara
+// CONSUL
 //////////////////////////////////
 
 consul_services = [{
@@ -58,7 +58,7 @@ connect_upstreams = [{
 connect_exposes   = [{
   path = "/metrics"
   port_label = "prometheus"
-  local_port = 2021
+  local_port = 9090
 }]
 
 /////////////////////////////////////////////////
@@ -70,7 +70,7 @@ payara_image = "kdsda/payara:5.2022.2-jdk11-main"
 payara_resources = {
   cpu        = 100
   cpu_strict = false
-  memory     = 750
+  memory     = 500
   memory_max = 750
 }
 
@@ -92,9 +92,9 @@ maven_image = "kdsda/ansible:2022.15"
 
 maven_resources = {
   cpu        = 100
-  cpu_strict = true
+  cpu_strict = false
   memory     = 100
-  memory_max = 250
+  memory_max = 200
 }
 
 maven_auth = {
@@ -123,34 +123,49 @@ fluentbit_resources = {
 // https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file
 fluentbit_config = <<HEREDOC
 ---
-#env: {}
 service:
-  flush:       1
+  flush:       3
+  daemon: off
   log_level:   warn
   http_server: on
 pipeline:
   inputs:
-  - cpu:
-      tag: demo.logs
+  - tail:
+      tag: tail.stdout.log
+      path: /alloc/logs/payara.stdout.*
+      path_key: file
+      read_from_head: on
+      skip_long_lines: on
+      skip_empty_lines: on
+      db: /local/stdout.db
+      db.locking: on
+  - tail:
+      tag: tail.stderr.log
+      path: /alloc/logs/payara.stderr.*
+      path_key: file
+      read_from_head: on
+      skip_long_lines: on
+      skip_empty_lines: on
+      db: /local/stderr.db
+      db.locking: on
   - prometheus_scrape:
-      tag: demo.metrics
+      tag: prometheus.demo.metrics
       host: 127.0.0.1
-      port: {{ NOMAD_PORT_http }}
-      scrape_interval: 10s
+      port: {{ env "NOMAD_PORT_http" }}
+      scrape_interval: 15s
       metrics_path: /metrics
   outputs:
-  - stdout:
-      match: *.logs
   - loki:
-      match: *.logs
-      host: {{ NOMAD_UPSTREAM_IP_loki }}
-      port: {{ NOMAD_UPSTREAM_PORT_loki }}
-      labels: job=payara
+      match: '*.logs'
+      host: {{ env "NOMAD_UPSTREAM_IP_loki" }}
+      port: {{ env "NOMAD_UPSTREAM_PORT_loki" }}
+      labels: job={{ env "NOMAD_JOB_NAME" }}{{ env "NOMAD_ALLOC_ID" }}, job_alloc={{ env "NOMAD_ALLOC_NAME" }}
   - prometheus_exporter:
-      match: *.metrics
+      match: '*.metrics'
       host: 0.0.0.0
-      port: {{ NOMAD_HOST_PORT_prometheus }}
-      add_label: color blue
+      port: {{ env "NOMAD_HOST_PORT_prometheus" }}
+      add_label: nomad_job {{ env "NOMAD_JOB_NAME" }}
+      add_label: noad_alloc {{ env "NOMAD_ALLOC_NAME" }}
 HEREDOC
 
 fluentbit_files = []

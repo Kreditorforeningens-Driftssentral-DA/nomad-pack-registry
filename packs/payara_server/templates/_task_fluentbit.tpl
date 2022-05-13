@@ -25,7 +25,7 @@
       [[- end ]]
 
       template {
-        destination = "${NOMAD_TASK_DIR}/config.conf"
+        destination = "${NOMAD_TASK_DIR}/config.yml"
         data = [[ .payara_server.fluentbit_config | toJson ]]
         change_mode = "restart"
         perms = "444"
@@ -45,7 +45,7 @@
       config {
         image = [[ .payara_server.fluentbit_image | toJson]]
         command = "/fluent-bit/bin/fluent-bit"
-        args = ["-c","${NOMAD_TASK_DIR}/config.conf"]
+        args = ["-c","${NOMAD_TASK_DIR}/config.yml"]
 
         [[- if .payara_server.fluentbit_cpu_hard_limit ]]
         cpu_hard_limit = true[[ end ]]

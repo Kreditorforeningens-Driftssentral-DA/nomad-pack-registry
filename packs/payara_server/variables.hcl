@@ -267,10 +267,9 @@ variable "fluentbit_resources" {
 }
 
 variable "fluentbit_config" {
-  description = "Configurationfile to use at startup."
+  description = "Configurationfile to use at startup. Uses yml-format (beta)"
   type = string
   default = <<-HEREDOC
-  # Preferably this should reference e.g. vault and/or consul.
   ---
   service:
     daemon: off
