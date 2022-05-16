@@ -13,7 +13,8 @@
       resources {
         cpu = [[ $res.cpu ]]
         memory = [[ $res.memory ]]
-        [[- if ge $res.memory $res.memory_max ]]
+        
+        [[- if ge $res.memory_max $res.memory ]]
         memory_max = [[ $res.memory_max ]][[ end ]]
       }
 
@@ -25,6 +26,7 @@
         source = [[ $artifact.source | toJson ]]
         destination = [[ $artifact.destination | toJson ]]
         mode = [[ $artifact.mode | toJson ]]
+        
         [[- if not $artifact.options | empty ]]
         options {
           [[- range $k,$v := $artifact.options ]]
@@ -93,8 +95,13 @@
       config {
         image = [[ .payara_server.payara_image | toJson ]]
         
-        [[- if .payara_server.payara_cpu_hard_limit ]]
+        [[- $res := .payara_server.payara_resources ]]
+        
+        [[- if $res.cpu_strict ]]
         cpu_hard_limit = true[[ end ]]
+
+        [[- if ge $res.memory_max $res.memory ]]
+        memory_hard_limit = [[ $res.memory_max ]][[ end ]]
 
         [[- range $mount := .payara_server.payara_mounts ]]
         

@@ -1,1 +1,1 @@
-OK!
+Payara-server deployed OK!

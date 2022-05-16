@@ -68,8 +68,8 @@ connect_exposes   = [{
 payara_image = "kdsda/payara:5.2022.2-jdk11-main"
 
 payara_resources = {
-  cpu        = 100
-  cpu_strict = false
+  cpu        = 750
+  cpu_strict = true
   memory     = 500
   memory_max = 750
 }
