@@ -1,8 +1,5 @@
 //////////////////////////////////
-// CONSUL services
-//   Connect upstreams &
-//   exposes are included for the 
-//   FIRST service
+// CONSUL native services
 //////////////////////////////////
 
 [[- define "consul_services_native" ]]
