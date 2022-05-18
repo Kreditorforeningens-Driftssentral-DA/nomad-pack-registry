@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## May 18, 2022
+  * [TRAEFIK](packs/traefik/README.md): New pack "traefik" (See [changelog](packs/traefik/CHANGELOG.md))
+---
+
 ## May 13, 2022
   * [PAYARA_SERVER](packs/payara_server/README.md): Tweaks & fixes.
 ---

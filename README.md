@@ -14,6 +14,7 @@ Packs in this repository:
 | [Grafana Loki](packs/loki/README.md) | loki-v0.0.2 |
 | [Payara (server)](packs/payara_server/README.md) | payara_server-v0.0.4 |
 | [Prometheus](packs/prometheus/README.md) | prometheus-v0.0.1 |
+| [Traefik](packs/traefik/README.md) | (latest) |
 
 ## Usage
 
