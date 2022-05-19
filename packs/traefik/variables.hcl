@@ -74,12 +74,13 @@ variable "ephemeral_disk" {
 //////////////////////////////////
 
 variable "consul_services_native" {
-  description = "Consul-connect sidecar services."
+  description = "Consul-connect native services."
   type = list(object({
-    port   = number
-    name   = string
-    tags   = list(string)
-    meta   = map(string)
+    port = number
+    name = string
+    task = string
+    tags = list(string)
+    meta = map(string)
   }))
 }
 
@@ -88,7 +89,6 @@ variable "consul_services" {
   type = list(object({
     port   = number
     name   = string
-    native = bool
     tags   = list(string)
     meta   = map(string)
     sidecar_cpu = number

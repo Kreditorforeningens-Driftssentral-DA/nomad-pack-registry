@@ -1,7 +1,8 @@
 # CHANGELOG
 
 ## Unreleased
-  * Refactor & exstend. Breaks w/previous versions. Verify variables! ([RR])
+  * Fixed services. Connect native & sidecar DOES work side-by-side.. ([RR])
+  * Inial commits ([RR])
 
 ---
 

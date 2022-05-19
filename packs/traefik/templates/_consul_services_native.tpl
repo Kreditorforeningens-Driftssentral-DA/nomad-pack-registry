@@ -10,6 +10,9 @@
       port = [[ $service.port | toJson ]]
       name = [[ $service.name | toJson ]]
       
+      [[- if $service.task ]]
+      task = [[ $service.task | toJson ]][[ end ]]
+      
       [[- if $service.tags ]]
       
       tags = [[ $service.tags | toStringList ]][[ end ]]

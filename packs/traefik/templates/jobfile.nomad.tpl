@@ -50,12 +50,11 @@ job "[[ template "job_name" . ]]" {
 
     [[- end ]]
 
-    [[- if .traefik.consul_services_native ]]
-    [[- template "consul_services_native" . ]]
-    [[- else ]]
     [[- if .traefik.consul_services ]]
     [[- template "consul_services" . ]][[ end ]]
-    [[- end ]]
+    
+    [[- if .traefik.consul_services_native ]]
+    [[- template "consul_services_native" . ]][[ end ]]
 
     [[- template "task_traefik" . ]]
   }
