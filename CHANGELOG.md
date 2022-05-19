@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## May 19, 2022
+  * [ALERTMANAGER](packs/alertmanager/README.md): New pack "alertmanager" (See [changelog](packs/alertmanager/CHANGELOG.md))
+---
+
 ## May 18, 2022
   * [TRAEFIK](packs/traefik/README.md): New pack "traefik" (See [changelog](packs/traefik/CHANGELOG.md))
 ---
