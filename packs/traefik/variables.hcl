@@ -138,7 +138,7 @@ variable "traefik_resources" {
 }
 
 variable "traefik_args" {
-  description = "Will be added to task environment-variables."
+  description = "Startup arguments."
   type = list(string)
   default = [
     "--accesslog=true",
@@ -182,7 +182,11 @@ variable "traefik_files_local" {
   }))
 }
 
+//////////////////////////////////
+// TASK demo (for testing)
+//////////////////////////////////
+
 variable "group_demo_enabled" {
-  type = string
+  type = bool
   default = false
 }
