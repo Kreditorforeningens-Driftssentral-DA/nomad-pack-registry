@@ -34,7 +34,7 @@
         destination = [[ $file.destination | toJson ]]
         change_mode = "restart"
         [[- if $file.b64encode ]]
-        data = {{ [[ $file.data | b64enc | toJson ]] | base64Decode }}
+        data = "{{ \"[[ $file.data | b64enc ]]\" | base64Decode }}"
         [[- else ]]
         data = [[ $file.data | toJson]]
         [[- end ]]
@@ -50,7 +50,7 @@
         change_mode = "restart"
         perms = "444"
         [[- if $file.b64encode ]]
-        data = {{ [[ fileContents $file.filename | b64enc | toJson ]] | base64Decode }}
+        data = "{{ \"[[ fileContents $file.filename | b64enc ]]\" | base64Decode }}"
         [[- else ]]
         data = [[ fileContents $file.filename | toJson ]][[ end ]]
       }
