@@ -182,6 +182,79 @@ variable "traefik_files_local" {
   }))
 }
 
+/////////////////////////////////////////////////
+// TASK fluentbit
+/////////////////////////////////////////////////
+
+variable "task_fluentbit_enabled" {
+  type = bool
+  default = false
+}
+
+variable "fluentbit_image" {
+  type = string
+  default = "fluent/fluent-bit:latest"
+}
+
+variable "fluentbit_args" {
+  type = list(string)
+}
+
+variable "fluentbit_resources" {
+  type = object({
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 100
+    cpu_strict = false
+    memory = 100
+    memory_max = 100
+  }
+}
+
+variable "fluentbit_config" {
+  description = "Configurationfile to use at startup. Uses yml-format (beta)"
+  type = string
+  default = <<-HEREDOC
+  ---
+  service:
+    daemon: off
+    flush: 5
+    log_level: info
+    http_server: off
+  pipeline:
+    inputs:
+    - tail:
+        tag: tail.stdin.log
+        path: /alloc/logs/traefik.stdin.*
+        path_key: filename
+        read_from_head: on
+        db: /local/stdin.log.db
+        db.locking: on
+    - tail:
+        tag: tail.stderr.log
+        path: /alloc/logs/traefik.stderr.*
+        path_key: filename
+        read_from_head: on
+        db: /local/stderr.log.db
+        db.locking: on
+    outputs:
+    - stdout:
+        match: '*.stdin.log'
+  HEREDOC
+}
+
+variable "fluentbit_files" {
+  description = "Custom file to render at startup. Reference these from config."
+  type = list(object({
+    name    = string
+    content = string
+  }))
+}
+
 //////////////////////////////////
 // TASK demo (for testing)
 //////////////////////////////////

@@ -56,6 +56,9 @@ job "[[ template "job_name" . ]]" {
     [[- if .traefik.consul_services_native ]]
     [[- template "consul_services_native" . ]][[ end ]]
 
+    [[- if .traefik.task_fluentbit_enabled ]]
+    [[- template "task_fluentbit" . ]][[ end ]]
+
     [[- template "task_traefik" . ]]
   }
 
