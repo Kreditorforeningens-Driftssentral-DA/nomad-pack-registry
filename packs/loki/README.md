@@ -4,6 +4,17 @@
 
 * https://github.com/grafana/loki/blob/main/docs/sources/configuration/examples.md
 
+```bash
+# Local pack
+source example.env
+nomad-pack plan packs/loki --name demo-loki -f packs/loki/vars.nomad
+
+# Registry pack
+source example.env
+nomad-pack registry add kred https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry --target loki
+nomad-pack plan loki --registry kred --name demo-loki -f packs/loki/vars.nomad
+```
+
 ## Included tasks (docker)
 
   * Loki
