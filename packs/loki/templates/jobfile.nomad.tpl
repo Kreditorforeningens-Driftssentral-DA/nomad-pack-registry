@@ -1,16 +1,13 @@
-/////////////////////////////////////////////////
-// NOMAD job
-/////////////////////////////////////////////////
-
 job "[[ template "job_name" . ]]" {
+  datacenters = [[ .my.datacenters | toStringList ]]
   
-  datacenters = [[ .loki.datacenters | toStringList ]]
-  [[- if $namespace := .loki.namespace ]]
+  [[- if $namespace := .my.namespace ]]
   namespace = [[ $namespace | toJson ]][[ end ]]
-  [[- if $region := .loki.region ]]
+  
+  [[- if $region := .my.region ]]
   region = [[ $region | toJson ]][[ end ]]
 
-  [[- range $constraint := .loki.constraints ]]
+  [[- range $constraint := .my.constraints ]]
   
   constraint {
     attribute = [[ $constraint.attribute | toJson ]]
@@ -20,7 +17,7 @@ job "[[ template "job_name" . ]]" {
   [[- end ]]
 
   group "main" {
-    count = [[ .loki.scale ]]
+    count = [[ .my.scale ]]
 
     restart {
       interval = "15m"
@@ -38,13 +35,16 @@ job "[[ template "job_name" . ]]" {
       auto_revert       = true
     }
 
-    [[- if $disk := .loki.ephemeral_disk ]]
+    [[- if $disk := .my.ephemeral_disk ]]
     
     ephemeral_disk {
+      
       [[- if $disk.size ]]
       size = [[ $disk.size ]][[ end ]]
+      
       [[- if $disk.migrate ]]
       migrate = [[ $disk.migrate ]][[ end ]]
+      
       [[- if $disk.sticky ]]
       sticky = [[ $disk.sticky ]][[ end ]]
     }
@@ -53,28 +53,26 @@ job "[[ template "job_name" . ]]" {
     
     network {
       mode = "bridge"
-      [[- range $port := .loki.consul_exposes ]]
-      port [[ $port.name | toJson ]] {
-        to = [[ $port.port ]]
-      }
-      [[- end ]]
-      [[- range $port := .loki.ports ]]
-      port [[ $port.name | toJson ]] {
+      
+      [[- range $port := .my.connect_exposes ]]
+      port [[ $port.port_label | toJson ]] {}[[ end ]]
+      
+      [[- range $port := .my.ports ]]
+      port [[ $port.label | toJson ]] {
         to = [[ $port.to ]]
+        
         [[- if (gt $port.static 0) ]]
         static = [[ $port.static ]][[- end ]]
       }
-
       [[- end ]]
     }
 
-    [[- if .loki.consul_service ]][[- template "consul_service_loki" . ]]  
-    [[- end ]]
+    [[- if .my.consul_services ]]
+    [[- template "consul_services" . ]][[ end ]]
+
+    [[- if .my.minio_enabled ]]
+    [[- template "task_minio" . ]][[ end ]]
 
     [[- template "task_loki" . ]]
-    
-    [[- if .loki.minio_enabled ]][[- template "task_minio" . ]]
-    [[- end ]]
-
-  } //END group
-} // END job
+  }
+}

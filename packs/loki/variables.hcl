@@ -1,3 +1,4 @@
+// LOKI VARIABLES
 //////////////////////////////////
 // SCHEDULING
 //////////////////////////////////
@@ -27,10 +28,6 @@ variable "constraints" {
   }))
 }
 
-//////////////////////////////////
-// GROUP loki
-//////////////////////////////////
-
 variable "scale" {
   type = number
   default = 1
@@ -46,12 +43,12 @@ variable "ephemeral_disk" {
 
 variable "ports" {
   type = list(object({
-    name   = string
+    label   = string
     to     = number
     static = number
   }))
   default = [{
-    name = "http"
+    label = "http"
     to = 3100
     static = -1
   }]
@@ -61,63 +58,31 @@ variable "ports" {
 // CONSUL service (loki)
 //////////////////////////////////
 
-variable "consul_service" {
-  type = object({
+variable "consul_services" {
+  description = "Consul-connect sidecar services."
+  type = list(object({
+    port = number
     name = string
-    port = string
-  })
-  default = {
-    name = "http-loki"
-    port = 3100
-  }
-}
-
-variable "consul_service_tags" {
-  type = list(string)
-  default = []
-}
-
-variable "consul_service_meta" {
-  type = map(string)
-  default = {}
-}
-
-variable "consul_sidecar_resources" {
-  type = object({
-    cpu    = number
-    memory = number
-  })
-  default = {
-    cpu    = 100
-    memory = 64
-  }
-}
-
-variable "consul_checks" {
-  type = list(object({
-    name   = string
-    path   = string
-  }))
-  default = [{
-    name   = "ready"
-    path   = "/ready"
-  }]
-}
-
-variable "consul_upstreams" {
-  type = list(object({
-    name      = string
-    bind_port = number
+    tags = list(string)
+    meta = map(string)
+    sidecar_cpu = number
+    sidecar_memory = number
   }))
 }
 
-variable "consul_exposes" {
+variable "connect_upstreams" {
   type = list(object({
-    name = string // Name of the port (will be created)
-    port = number // target task-port
-    path = string // path to expose
+    name       = string
+    local_port = number
   }))
-  default = []
+}
+
+variable "connect_exposes" {
+  type = list(object({
+    port_label = string
+    local_port = number
+    path       = string
+  }))
 }
 
 //////////////////////////////////
@@ -128,6 +93,22 @@ variable "loki_image" {
   description = "The container image used by the task."
   type = string
   default = "grafana/loki:latest"
+}
+
+variable "loki_resources" {
+  description = "The resources to assign the task."
+  type = object({
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 100
+    cpu_strict = false
+    memory = 125
+    memory_max = -1
+  }
 }
 
 variable "loki_args" {
@@ -209,28 +190,14 @@ variable "loki_config" {
   HEREDOC
 }
 
-variable "loki_resources" {
-  description = "The resources to assign the task."
-  type = object({
-    cpu        = number
-    memory     = number
-    memory_max = number
-  })
-  default = {
-    cpu = 100
-    memory = 96
-    memory_max = -1
-  }
-}
-
-variable "loki_custom_files" {
+variable "loki_files" {
   type = list(object({
     destination = string
-    data        = string
+    data = string
   }))
 }
 
-variable "loki_custom_mounts" {
+variable "loki_mounts" {
   type = list(object({
     source = string
     target = string
@@ -246,27 +213,29 @@ variable "minio_enabled" {
   default = false
 }
 
-variable "minio_resources" {
-  description = "The resources to assign the task."
-  type = object({
-    cpu        = number
-    memory     = number
-    memory_max = number
-  })
-  default = {
-    cpu = 100
-    memory = 96
-    memory_max = -1
-  }
-}
-
 variable "minio_image" {
   description = "The container image used by the task."
   type = string
   default = "quay.io/minio/minio:latest"
 }
 
-variable "minio_config_env" {
+variable "minio_resources" {
+  description = "The resources to assign the task."
+  type = object({
+    cpu        = number
+    cpu_strict = bool
+    memory     = number
+    memory_max = number
+  })
+  default = {
+    cpu = 100
+    cpu_strict = false
+    memory = 125
+    memory_max = -1
+  }
+}
+
+variable "minio_env" {
   type = map(string)
   default = {
     minio_root_user = "loki"

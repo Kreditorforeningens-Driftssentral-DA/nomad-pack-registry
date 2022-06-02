@@ -3,53 +3,53 @@
 //////////////////////////////////
 
 job_name = "demo-loki"
+namespace = "default"
 
-//////////////////////////////////
-// LOKI
-//////////////////////////////////
+ephemeral_disk = {
+  size    = 500
+  migrate = true
+  sticky  = true
+}
 
-ports = [] // Only access using consul-connect
+ports = []
+
+connect_exposes = [{
+  port_label = "metrics"
+  local_port = 3100
+  path = "/metrics"
+}]
 
 //////////////////////////////////
 // CONSUL services (loki)
 //////////////////////////////////
 
-consul_service = {
+consul_services = [{
+  port = 3100
   name = "demo-loki"
-  port = 3100
-}
-
-consul_service_tags = ["traefik.enable=false"]
-
-// Expose extra endpoint for metrics (creates port)
-consul_exposes = [{
-  name = "prometheus-metrics"
-  path = "/metrics"
-  port = 3100
+  tags = []
+  meta = {
+    prometheus_metrics_port = "$${NOMAD_PORT_metrics}"
+  }
+  sidecar_cpu = 50
+  sidecar_memory = 50
 }]
-
-// Add metadata for prometheus scraping
-consul_service_meta = {
-  metrics_prometheus_port = "$${NOMAD_HOST_PORT_prometheus_metrics}"
-  metrics_prometheus_path = "/metrics"
-}
 
 //////////////////////////////////
 // TASK loki
 //////////////////////////////////
 
-// Remove default config, to avoid mounting (using multiple files)
-#loki_config = ""
+// Remove default config/mount if using custom file
+loki_config = ""
 
 // Set custom loki startup-arguments
 loki_args = [
-  "-config.file=/local/loki_local.yaml",
+  "-config.file=/local/loki_minio.yaml",
   "-config.expand-env=true",
   "-log-config-reverse-order",
 ]
 
-// Add extra config-files
-loki_custom_files = [{
+// Add multipe config-files
+loki_files = [{
   destination = "/local/loki_local.yaml"
   data = <<HEREDOC
 auth_enabled: false
@@ -108,7 +108,7 @@ server:
 memberlist:
   abort_if_cluster_join_fails: false
   bind_port: 7946
-  join_members: ["loki:7946"]
+  join_members: ["127.0.0.1:7946"]
   max_join_retries: 10
   min_join_backoff: 3s
   max_join_backoff: 1m
@@ -167,3 +167,15 @@ compactor:
   shared_store: s3
 HEREDOC
 }]
+
+//////////////////////////////////
+// TASK minio
+//////////////////////////////////
+
+minio_enabled = true
+
+minio_env = {
+  minio_root_user = "loki"
+  minio_root_password = "lokiadmin"
+  minio_prometheus_auth_type = "public"
+}

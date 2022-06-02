@@ -12,43 +12,49 @@
         sidecar = true
       }
       
-      [[- if not .loki.minio_resources | empty ]]
+      [[- if $res := .my.minio_resources ]]
       
       resources {
-        cpu    = [[ .loki.minio_resources.cpu ]]
-        memory = [[ .loki.minio_resources.memory ]]
-        memory_max = [[ .loki.minio_resources.memory_max ]]
+        cpu    = [[ $res.cpu ]]
+        memory = [[ $res.memory ]]
+        
+        [[- if ge $res.memory_max $res.memory ]]
+        memory_max = [[ $res.memory_max ]][[ end ]]
       }
+
       [[- end ]]
 
-      [[- if not .loki.minio_env | empty ]]
+      [[- if .my.minio_env ]]
       
       env {
-        [[- range $k,$v := .loki.minio_env ]]
-        [[ $k ]] = [[ $v | toJson ]]
+        [[- range $k,$v := .my.minio_env ]]
+        [[ $k | upper ]] = [[ $v | toJson ]]
         [[- end ]]
       }
+
       [[- end ]]
 
       template {
-        destination = "/local/docker-custom.sh"
-        data = <<-EOH
-        #!/bin/sh
-        # If command starts with an option, prepend minio.
+        destination = "/local/docker-startup.sh"
+        change_mode = "restart"
+        perms = "755"
+        data = <<-HEREDOC
+        #!/usr/bin/env sh
+
         if [ "${1}" != "minio" ]; then
           if [ -n "${1}" ]; then
             set -- minio "$@"
           fi
         fi
-        # su-exec to requested user, if service cannot run exec will fail.
+        
         docker_switch_user() {
           if [ -n "${MINIO_USERNAME}" ] && [ -n "${MINIO_GROUPNAME}" ]; then
             if [ -n "${MINIO_UID}" ] && [ -n "${MINIO_GID}" ]; then
-              groupadd -g "$MINIO_GID" "$MINIO_GROUPNAME" && \
-                useradd -u "$MINIO_UID" -g "$MINIO_GROUPNAME" "$MINIO_USERNAME"
+              groupadd -g "${MINIO_GID}" "${MINIO_GROUPNAME}" && \
+                useradd -u "${MINIO_UID}" -g "${MINIO_GROUPNAME}" "${MINIO_USERNAME}"
             else
-              groupadd "$MINIO_GROUPNAME" && \
-                useradd -g "$MINIO_GROUPNAME" "$MINIO_USERNAME"
+              groupadd "${MINIO_GROUPNAME}" && \
+                useradd -g "${MINIO_GROUPNAME}" "${MINIO_USERNAME}"
             fi
             exec setpriv --reuid="${MINIO_USERNAME}" \
               --regid="${MINIO_GROUPNAME}" --keep-groups "$@"
@@ -56,32 +62,43 @@
             exec "$@"
           fi
         }
-        ## Switch to user if applicable.
-        # Customize: Add bucket
+        
         mkdir -p /exports/loki
-        chown $MINIO_USERNAME:$MINIO_GROUPNAME -R /exports
+
+        if [ -n "${MINIO_USERNAME}" ]; then
+          chown ${MINIO_USERNAME}:${MINIO_GROUPNAME} -R /exports
+        fi
+        
         docker_switch_user "$@"
-        EOH
-        change_mode = "restart"
-        perms = "755"
+        HEREDOC
       }
 
       template {
         destination = "local/buckets/info.txt"
         data = "Contains minio bucket(s)\n"
         change_mode = "noop"
-        perms = "666"
+        perms = "444"
       }
       
       config {
-        image = [[ list .loki.minio_image.name .loki.minio_image.version | join ":" | toJson ]]
-        entrypoint = ["/usr/bin/docker-custom.sh"]
+        image = [[ .my.minio_image | toJson ]]
+        entrypoint = ["/usr/local/bin/docker-startup.sh"]
         args = ["server","/exports","--console-address=:9001"]
+        
+        [[- if $res := .my.loki_resources ]]
+
+        [[- if $res.cpu_strict ]]
+        cpu_hard_limit = true[[ end ]]
+
+        [[- if ge $res.memory_max $res.memory ]]
+        memory_hard_limit = [[ $res.memory_max ]][[ end ]]
+        
+        [[- end ]]
         
         mount {
           type = "bind"
-          target = "/usr/bin/docker-custom.sh"
-          source = "local/docker-custom.sh"
+          target = "/usr/local/bin/docker-startup.sh"
+          source = "local/docker-startup.sh"
           readonly = false
         }
 
