@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## November 29, 2022
+  * [BITBUCKET_RUNNER](packs/bitbucket_runner/README.md): Cleanup (See [changelog](packs/bitbucket_runner/CHANGELOG.md))
+  * [GRAFANA_MIMIR](packs/grafana_mimir/README.md): New pack (See [changelog](packs/grafana_mimir/CHANGELOG.md))
+---
+
 ## May 19, 2022
   * [ALERTMANAGER](packs/alertmanager/README.md): New pack "alertmanager" (See [changelog](packs/alertmanager/CHANGELOG.md))
 ---
