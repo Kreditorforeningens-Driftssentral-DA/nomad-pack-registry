@@ -1,57 +1,61 @@
-[[- define "task_web" ]]
+//////////////////////////////////
+// Task | Bitbucket Runner
+//////////////////////////////////
 
-/////////////////////////////////////////////////
-// Task start (web)
-/////////////////////////////////////////////////
+[[- define "task_runner" ]]
 
-    task "web" {
+    task "runner" {
       driver = "docker"
+      leader = true
+      
+      [[- if $res := .my.resources ]]
       
       resources {
-        cpu = [[ .bitbucket_runner.resources.cpu ]]
-        memory = [[ .bitbucket_runner.resources.memory ]]
-        memory_max = [[ .bitbucket_runner.resources.memory_max ]]
+        cpu        = [[ $res.cpu ]]
+        memory     = [[ $res.memory ]]
+        memory_max = [[ $res.memory_max ]]
       }
+      [[- end ]]
 
-      [[- if not (and (.bitbucket_runner.environment|empty) (.bitbucket_runner.settings|empty)) ]]
+      [[- if not (and (.my.environment|empty) (.my.settings|empty)) ]]
       
       env {
-        [[- range $k,$v := .bitbucket_runner.environment ]]
-        [[ $k ]] = [[ $v | toJson ]]
+        [[- range $key,$value := .my.environment ]]
+        [[ $key ]] = [[ $value | toJson ]]
         [[- end ]]
       
-        [[- range $k,$v := .bitbucket_runner.settings ]]
-        [[ $k | upper ]] = [[ $v | toJson ]]
+        [[- range $key,$value := .my.settings ]]
+        [[ $key | upper ]] = [[ $value | toJson ]]
         [[- end ]]
       }
       
       [[- end ]]
       
-      [[- range $file := .bitbucket_runner.files ]]
+      [[- range $file := .my.files ]]
 
       template {
-        change_mode = "restart"
-        perms = "644"
-        destination = "[[ $file.name ]]"
         [[- if $file.b64encode ]]
         data = "{{ [[ $file.content | b64enc | toJson ]] | base64Decode }}"
         [[- else ]]
         data = [[ $file.content | toJson ]]
         [[- end ]]
+        change_mode = "restart"
+        perms = "644"
+        destination = "[[ $file.name ]]"
       }
       
       [[- end ]]
       
       config {
-        image = [[ list .bitbucket_runner.image.name .bitbucket_runner.image.tag | join ":" | print | toJson ]]
-        privileged = [[ .bitbucket_runner.privileged ]]
+        image = [[ list .my.image.name .my.image.tag | join ":" | print | toJson ]]
+        privileged = [[ .my.privileged ]]
 
-        [[- range $mount := .bitbucket_runner.mounts ]]
+        [[- range $mount := .my.mounts ]]
         
         mount {
-          type   = [[ $mount.bind | toJson ]]
-          source = [[ $mount.source | toJson ]]
-          target = [[ $mount.target | toJson ]]
+          type     = [[ $mount.type | toJson ]]
+          source   = [[ $mount.source | toJson ]]
+          target   = [[ $mount.target | toJson ]]
           readonly = [[ $mount.readonly ]]
         }
 

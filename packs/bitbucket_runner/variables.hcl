@@ -1,6 +1,6 @@
-/////////////////////////////////////////////////
-// Job
-/////////////////////////////////////////////////
+//////////////////////////////////
+// Scheduling
+//////////////////////////////////
 
 variable "job_name" {
   type = string
@@ -14,9 +14,9 @@ variable "namespace" {
   type = string
 }
 
-/////////////////////////////////////////////////
-// Group (main)
-/////////////////////////////////////////////////
+//////////////////////////////////
+// Group | Runner
+//////////////////////////////////
 
 variable "scale" {
   type = number
@@ -28,6 +28,7 @@ variable "exposed_ports" {
     name = string
     target = number
   }))
+
   default = []
 }
 
@@ -49,6 +50,7 @@ variable "consul_services" {
       services   = list(string)
     })
   }))
+  
   default = []
 }
 
@@ -62,29 +64,31 @@ variable "image" {
     name = string
     tag  = string
   })
+  
   default = {
     name = "docker-public.packages.atlassian.com/sox/atlassian/bitbucket-pipelines-runner"
-    tag = "1"
+    tag  = "latest" // E.g. 1.382
   }
 }
 
 variable "resources" {
   description = "Define resource requirements."
   type = object({
-    cpu = number
-    memory = number
+    cpu        = number
+    memory     = number
     memory_max = number
   })
+
   default = {
-    cpu = 200
-    memory = 384
+    cpu        = 200
+    memory     = 256
     memory_max = 512
   }
 }
 
 variable "privileged" {
   description = "Run docker-task in privileged mode."
-  type = bool
+  type    = bool
   default = false
 }
 
@@ -112,6 +116,8 @@ variable "files" {
     b64encode = bool
     content   = string
   }))
+  
+  default = []
 }
 
 variable "mounts" {
@@ -122,20 +128,21 @@ variable "mounts" {
     target   = string
     readonly = bool
   }))
+  
   default = [{
-    type = "bind"
-    target = "/var/run/docker.sock"
-    source = "/var/run/docker.sock"
+    type     = "bind"
+    target   = "/var/run/docker.sock"
+    source   = "/var/run/docker.sock"
     readonly = false
-  },{
-    type = "bind"
-    target = "/tmp"
-    source = "/tmp"
+  }, {
+    type     = "bind"
+    target   = "/tmp"
+    source   = "/tmp"
     readonly = false
-  },{
-    type = "bind"
-    target = "/var/lib/docker/containers"
-    source = "/var/lib/docker/containers"
+  }, {
+    type     = "bind"
+    target   = "/var/lib/docker/containers"
+    source   = "/var/lib/docker/containers"
     readonly = true
   }]
 }

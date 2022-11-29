@@ -1,50 +1,39 @@
-/////////////////////////////////////////////////
-// Job start
-/////////////////////////////////////////////////
-
 job "[[ template "job_name" . ]]" {
+  
   [[- template "datacenters" . ]]
   [[- template "namespace" . ]]
 
-/////////////////////////////////////////////////
-// Group main
-/////////////////////////////////////////////////
-
   group "main" {
-    count = [[ .bitbucket_runner.scale ]]
+    count = [[ .my.scale ]]
 
     restart {
       interval = "1h"
       attempts = 3
-      delay = "60s"
-      mode = "fail"
+      delay    = "60s"
+      mode     = "fail"
     }
 
     reschedule {
-      interval = "12h"
-      attempts = 10
-      delay = "5m"
-      max_delay = "1h"
+      interval       = "12h"
+      attempts       = 3
+      delay          = "5m"
+      max_delay      = "1h"
       delay_function = "exponential"
       unlimited = false
     }
 
-    [[- template "task_web" . ]]
-
     network {
       mode = "bridge"
-      [[- range $port := .bitbucket_runner.exposed_ports ]]
+      
+      [[- range $port := .my.exposed_ports ]]
+      
       port [[ $port.name | toJson ]] {
         to = [[ $port.target ]]
       }
       [[- end ]]
     }
 
-    [[- range $svc := .bitbucket_runner.consul_services ]]
-    
-/////////////////////////////////////////////////
-// Consul Service (main)
-/////////////////////////////////////////////////
+    [[- range $svc := .my.consul_services ]]
     
     service {
       name = [[ $svc.name | toJson ]]
@@ -53,7 +42,7 @@ job "[[ template "job_name" . ]]" {
       connect {
         sidecar_task {
           resources {
-            cpu = [[ $svc.resources.cpu ]]
+            cpu    = [[ $svc.resources.cpu ]]
             memory = [[ $svc.resources.memory ]]
           }
         }
@@ -74,5 +63,7 @@ job "[[ template "job_name" . ]]" {
       }
     }
     [[- end ]]
+
+    [[- template "task_runner" . ]]
   }
 }
