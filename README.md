@@ -6,16 +6,17 @@ Packs in this repository:
   
 | PACK-ID | APPLICATION | LATEST TAG |
 | :--  | :--         | :--        |
-| activemq | [ActiveMQ](packs/activemq/README.md) | (latest) |
+| activemq         | [ActiveMQ](packs/activemq/README.md) | (latest) |
+| alertmanager     | [Prometheus Alertmanager](packs/alertmanager/README.md) | (latest) |
 | bitbucker_runner | [Bitbucket-Runner](packs/bitbucket_runner/README.md) | (latest) |
-| example | [Example](packs/example/README.md) | (latest) |
-| fluentbit | [Fluentbit](packs/fluentbit/README.md) | (latest) |
-| grafana | [Grafana](packs/grafana/README.md) | (latest) |
-| loki | [Grafana Loki](packs/loki/README.md) | (latest) |
-| payara_server | [Payara Server](packs/payara_server/README.md) | (latest) |
-| prometheus | [Prometheus](packs/prometheus/README.md) | (latest) |
-| alertmanager | [Prometheus Alertmanager](packs/alertmanager/README.md) | (latest) |
-| traefik | [Traefik](packs/traefik/README.md) | (latest) |
+| example          | [Example](packs/example/README.md) | (latest) |
+| fluentbit        | [Fluentbit](packs/fluentbit/README.md) | (latest) |
+| grafana          | [Grafana](packs/grafana/README.md) | (latest) |
+| grafana loki     | [Grafana Loki](packs/loki/README.md) | (latest) |
+| grafana mimir    | [Grafana Mimir](packs/grafana_mimir/README.md) | (latest) |
+| payara_server    | [Payara Server](packs/payara_server/README.md) | (latest) |
+| prometheus       | [Prometheus](packs/prometheus/README.md) | (latest) |
+| traefik          | [Traefik](packs/traefik/README.md) | (latest) |
 
 ## Usage
 
