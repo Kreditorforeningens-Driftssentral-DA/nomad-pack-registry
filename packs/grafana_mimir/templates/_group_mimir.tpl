@@ -117,6 +117,8 @@
 
     [[- end ]]
     
+    [[- if gt (len $.my.mimir_init_script) 0 ]]
+    
     task "init" {
       driver = "docker"
 
@@ -152,6 +154,8 @@
         change_mode = "noop"
       }
     }
+    
+    [[- end ]]
 
     task "mimir" {
       driver = "docker"

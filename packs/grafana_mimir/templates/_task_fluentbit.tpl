@@ -1,5 +1,5 @@
 //////////////////////////////////
-// Task (Sidecar) | Fluentbit Scraper
+// Task (Sidecar) | Scraper
 //////////////////////////////////
 
     [[- define "task_fluentbit" ]]
@@ -17,7 +17,6 @@
         memory     = 35
         memory_max = 75
       }
-      
 
       config {
         image      = "fluent/fluent-bit:latest"

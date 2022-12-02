@@ -42,6 +42,16 @@
         delay    = "15s"
         mode     = "fail"
       }
+      
+      [[- if $res := $.my.nginx_resources ]]
+
+      resources {
+        cpu        = [[ $res.cpu ]]
+        memory     = [[ $res.memory ]]
+        memory_max = [[ $res.memory_max ]]
+      }
+
+      [[- end ]]
      
       config {
         image = [[ $.my.nginx_image | toJson ]]
@@ -107,6 +117,14 @@
             proxy_pass https://mimir-read;
           }
         }
+
+        server {
+          listen 8080;
+          
+          location = /status {
+            stub_status;
+          }
+        }
         HEREDOC
         destination   = "local/nginx/default.conf"
         perms         = "440"
@@ -135,6 +153,29 @@
         change_mode = "noop"
       }
     }
+    
+    [[- if false ]]
+    # Todo: Optional metrics: http://127.0.0.1:9113/metrics
+    task "nginx-exporter" {
+      driver = "docker"
+
+      lifecycle {
+        hook = "poststart"
+        sidecar = true
+      }
+
+      resources {
+        cpu        = 50
+        memory     = 25
+        memory_max = 75
+      }
+
+      config {
+        image   = "nginx/nginx-prometheus-exporter:latest"
+        command = ["-nginx.scrape-uri=http://127.0.0.1:8080/status"]
+      }
+    }
+    [[- end ]]
   }
  
 [[- end ]]
