@@ -5,9 +5,10 @@
 Packs in this repository: 
   
 | PACK-ID | APPLICATION | LATEST TAG |
-| :--  | :--         | :--        |
+| :--     | :--         | :--        |
 | activemq         | [ActiveMQ](packs/activemq/README.md) | (latest) |
-| alertmanager     | [Prometheus Alertmanager](packs/alertmanager/README.md) | (latest) |
+| alert2teams      | [Alert Forwarding](packs/alert2teams/README.md) | (latest) |
+| alertmanager     | [Alertmanager](packs/alertmanager/README.md) | (latest) |
 | bitbucker_runner | [Bitbucket-Runner](packs/bitbucket_runner/README.md) | (latest) |
 | example          | [Example](packs/example/README.md) | (latest) |
 | fluentbit        | [Fluentbit](packs/fluentbit/README.md) | (latest) |
