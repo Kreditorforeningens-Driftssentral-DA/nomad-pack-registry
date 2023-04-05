@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## April 5, 2023
+  * [ALERT2TEAMS](packs/alert2teams/README.md): Cleanup (See [changelog](packs/alert2teams/CHANGELOG.md))
+---
+
 ## November 29, 2022
   * [BITBUCKET_RUNNER](packs/bitbucket_runner/README.md): Cleanup (See [changelog](packs/bitbucket_runner/CHANGELOG.md))
   * [GRAFANA_MIMIR](packs/grafana_mimir/README.md): New pack (See [changelog](packs/grafana_mimir/CHANGELOG.md))
