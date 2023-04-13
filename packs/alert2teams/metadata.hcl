@@ -7,5 +7,5 @@ pack {
   name = "alert2teams"
   description = "Rewrite Alertmanager webhook alerts to Teams Webhooks."
   url = "https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry/packs/alert2teams"
-  version = "0.1.0"
+  version = "0.1.1"
 }
