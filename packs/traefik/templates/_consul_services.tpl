@@ -7,10 +7,10 @@
 
 [[- define "consul_services" ]]
 
-  [[- $exposes   := .traefik.connect_exposes ]]
-  [[- $upstreams := .traefik.connect_upstreams ]]
+  [[- $exposes   := .my.connect_exposes ]]
+  [[- $upstreams := .my.connect_upstreams ]]
 
-  [[- range $idx, $service := .traefik.consul_services ]]
+  [[- range $idx, $service := .my.consul_services ]]
   
     service {
       port = [[ $service.port | toJson ]]

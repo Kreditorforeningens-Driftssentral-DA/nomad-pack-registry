@@ -1,5 +1,5 @@
 //////////////////////////////////
-// traefik
+// Traefik
 //////////////////////////////////
 
 [[- define "task_traefik" ]]
@@ -8,42 +8,43 @@
       driver = "docker"
       leader = true
 
-      [[- if $res := .traefik.traefik_resources ]]
+      [[- with .my.traefik_resources ]]
       
       resources {
-        cpu = [[ $res.cpu ]]
-        memory = [[ $res.memory ]]
+        cpu = [[ .cpu ]]
+        memory = [[ .memory ]]
         
-        [[- if ge $res.memory_max $res.memory ]]
-        memory_max = [[ $res.memory_max ]][[ end ]]
+        [[- if ge .memory_max .memory ]]
+        memory_max = [[ .memory_max ]][[ end ]]
       }
       [[- end ]]
 
-      [[- if $env := .traefik.traefik_environment ]]
+      [[- with .my.traefik_environment ]]
 
       env {
-        [[- range $k,$v := $env ]]
+        [[- range $k,$v := . ]]
         [[ $k ]] = [[ $v | toJson ]]
         [[- end ]]
       }
       [[- end ]]
 
-      [[- range $file := .traefik.traefik_files ]]
+      [[- range $file := .my.traefik_files ]]
 
       template {
         destination = [[ $file.destination | toJson ]]
         change_mode = "restart"
+        perms = "444"
         [[- if $file.b64encode ]]
         data = "{{ \"[[ $file.data | b64enc ]]\" | base64Decode }}"
         [[- else ]]
-        data = [[ $file.data | toJson]]
+        data = <<-HEREDOC
+        [[- $file.data | nindent 8 -]]
+        HEREDOC
         [[- end ]]
-        perms = "444"
       }
-
       [[- end ]]
 
-      [[- range $file := .traefik.traefik_files_local ]]
+      [[- range $file := .my.traefik_files_local ]]
 
       template {
         destination = [[ $file.destination | toJson ]]
@@ -54,22 +55,33 @@
         [[- else ]]
         data = [[ fileContents $file.filename | toJson ]][[ end ]]
       }
-
       [[- end ]]      
 
       config {
-        image = [[ .traefik.traefik_image | toJson ]]
-        
-        [[- if $args := .traefik.traefik_args ]]
+        image = [[ .my.traefik_image | toJson ]]
+
+        [[- if (ne .my.network_mode "bridge") ]]
+        network_mode = [[ .my.network_mode | toJson ]]
+        [[- end ]]
+
+        [[- with $.my.ports ]]
+        ports = [
+        [[- range $_,$v := . ]]
+          [[ $v.label | toJson ]],
+        [[- end ]]
+        ]
+        [[- end ]]
+
+        [[- if $args := .my.traefik_args ]]
         args = [[ $args | toStringList ]][[ end ]]
         
-        [[- if .traefik.traefik_resources.cpu_strict ]]
+        [[- if .my.traefik_resources.cpu_strict ]]
         cpu_hard_limit = true[[ end ]]
 
-        [[- if ge ($memory_max := .traefik.traefik_resources.memory_max) .traefik.traefik_resources.memory ]]
+        [[- if ge ($memory_max := .my.traefik_resources.memory_max) .my.traefik_resources.memory ]]
         memory_hard_limit = [[ $memory_max ]][[ end ]]
 
-        [[- range $mount := .traefik.traefik_mounts ]]
+        [[- range $mount := .my.traefik_mounts ]]
 
         mount {
           type = "bind"
