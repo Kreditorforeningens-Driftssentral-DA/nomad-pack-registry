@@ -1,6 +1,6 @@
-/////////////////////////////////////////////////
-// SCHEDULING
-/////////////////////////////////////////////////
+////////////////////////
+// Nomad Scheduling
+////////////////////////
 
 variable "job_name" {
   type = string
@@ -26,10 +26,11 @@ variable "constraints" {
     operator  = string
     value     = string
   }))
+  
   default = [{
     attribute = "$${attr.kernel.name}"
-    value = "linux"
-    operator = ""
+    value     = "linux"
+    operator  = ""
   }]
 }
 
@@ -59,16 +60,17 @@ variable "ports" {
     to     = number
     static = number
   }))
+  
   default = [{
-    label = "console"
-    to = 8161
+    label  = "console"
+    to     = 8161
     static = -1
   }]
 }
 
-/////////////////////////////////////////////////
-// CONSUL services
-/////////////////////////////////////////////////
+////////////////////////
+// CONSUL Services
+////////////////////////
 
 variable "consul_service" {
   description = "Primary consul service. Handles upstreams and connect-exposes."
@@ -111,8 +113,9 @@ variable "consul_sidecar_resources" {
     cpu    = number
     memory = number
   })
+  
   default = {
-    cpu = 50
+    cpu    = 50
     memory = 75
   }
 }
@@ -129,9 +132,9 @@ variable "consul_services" {
   }))
 }
 
-/////////////////////////////////////////////////
-// TASK activemq
-/////////////////////////////////////////////////
+////////////////////////
+// Activemq (leader)
+////////////////////////
 
 variable "activemq_image" {
   type = string
@@ -150,10 +153,11 @@ variable "activemq_resources" {
     memory     = number
     memory_max = number
   })
+  
   default = {
-    cpu = 100
+    cpu        = 100
     cpu_strict = false
-    memory = 512
+    memory     = 512
     memory_max = -1
   }
 }
@@ -167,6 +171,7 @@ variable "activemq_custom_files" {
     name = string
     data = string
   }))
+  
   default = [{
     name = "/local/info.txt"
     data = <<-EOH
@@ -181,15 +186,16 @@ variable "activemq_custom_mounts" {
     source = string
     target = string
   }))
+  
   default = [{
     source = "local/info.txt"
     target = "/opt/activemq/conf/info.txt"
   }]
 }
 
-/////////////////////////////////////////////////
-// TASK postgres (local persistence)
-/////////////////////////////////////////////////
+////////////////////////
+// Postgres (local persistence)
+////////////////////////
 
 variable "task_enabled_postgres" {
   type = bool
@@ -207,26 +213,28 @@ variable "postgres_resources" {
     memory     = number
     memory_max = number
   })
+  
   default = {
-    cpu = 50
-    memory = 64
+    cpu        = 50
+    memory     = 64
     memory_max = 64
   }
 }
 
 variable "postgres_environment" {
   type = map(string)
+  
   default = {
     POSTGRES_PASSWORD = "activemq"
-    POSTGRES_USER = "activemq"
-    POSTGRES_DB = "activemq"
-    PGDATA = "/alloc/data/pgdata"
+    POSTGRES_USER     = "activemq"
+    POSTGRES_DB       = "activemq"
+    PGDATA            = "/alloc/data/pgdata"
   }
 }
 
-/////////////////////////////////////////////////
-// TASK adminer (database user interface)
-/////////////////////////////////////////////////
+////////////////////////
+// Adminer (database user interface)
+////////////////////////
 
 variable "task_enabled_adminer" {
   type = bool
@@ -244,21 +252,22 @@ variable "adminer_resources" {
     memory     = number
     memory_max = number
   })
+  
   default = {
-    cpu = 50
-    memory = 32
+    cpu        = 50
+    memory     = 32
     memory_max = 32
   }
 }
 
 variable "adminer_default_server" {
-  type = string
+  type    = string
   default = "localhost:5432"
 }
 
-/////////////////////////////////////////////////
-// TASK telegraf (metrics)
-/////////////////////////////////////////////////
+////////////////////////
+// Telegraf (metrics)
+////////////////////////
 
 variable "task_enabled_telegraf" {
   type = bool
@@ -276,10 +285,11 @@ variable "telegraf_resources" {
     memory     = number
     memory_max = number
   })
+  
   default = {
     cpu = 50
     cpu_strict = false
-    memory = 64
+    memory     = 64
     memory_max = 64
   }
 }
@@ -290,6 +300,7 @@ variable "telegraf_credentials" {
     activemq_password = string
     activemq_webadmin = string
   })
+  
   default = {
     activemq_username = "admin"
     activemq_password = "admin"
@@ -307,5 +318,58 @@ variable "telegraf_config" {
     username = "$${ACTIVEMQ_USERNAME}"
     password = "$${ACTIVEMQ_PASSWORD}"
     webadmin = "$${ACTIVEMQ_WEBADMIN}"
+  HEREDOC
+}
+
+////////////////////////
+// Fluent-Bit (metrics)
+////////////////////////
+
+variable "task_enabled_fluentbit" {
+  type    = bool
+  default = false
+}
+
+variable "fluentbit_image" {
+  type    = string
+  default = "fluent/fluent-bit:latest"
+}
+
+variable "fluentbit_resources" {
+  type = object({
+    cpu        = number
+    memory     = number
+    memory_max = number
+  })
+  
+  default = {
+    cpu        = 50
+    cpu_strict = false
+    memory     = 32
+    memory_max = 64
+  }
+}
+
+variable "fluentbit_config" {
+  type = string
+  default = <<-HEREDOC
+  service:
+    daemon: off
+    http_server: off
+    flush: 5
+    log_level: error
+
+  pipeline:
+    inputs:
+    - name: prometheus_scrape
+      tag: activemq.prometheus
+      host: localhost
+      port: 9273
+      metrics_path: /metrics
+      scrape_interval: 10s
+    
+    outputs:
+    - name: stdout
+      match: '*.prometheus'
   HEREDOC
 }

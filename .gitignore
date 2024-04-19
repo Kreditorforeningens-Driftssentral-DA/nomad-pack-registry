@@ -1,4 +1,6 @@
-stacks/*
-tests/*
+**/stacks/*
+**/tests/*
+**/examples/*
+**/v2-development/*
 
 *.auto.hcl

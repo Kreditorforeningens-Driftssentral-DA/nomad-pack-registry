@@ -79,6 +79,10 @@ job "[[ template "job_name" . ]]" {
     [[- template "task_telegraf" . ]]
     [[- end ]]
 
+    [[- if .activemq.task_enabled_fluentbit ]]
+    [[- template "task_fluentbit" . ]]
+    [[- end ]]
+
     [[- template "task_activemq" . ]]
   }
 }

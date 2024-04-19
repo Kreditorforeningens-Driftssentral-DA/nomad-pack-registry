@@ -1,47 +1,45 @@
 # NOMAD-PACK-REGISTRY (PUBLIC)
 
-## Details
+## LIST OF PACKS
 
-Packs in this repository: 
-  
-| PACK-ID | APPLICATION | LATEST TAG |
-| :--     | :--         | :--        |
-| activemq         | [ActiveMQ](packs/activemq/README.md) | (latest) |
-| alert2teams      | [Alert Forwarding](packs/alert2teams/README.md) | (latest) |
-| alertmanager     | [Alertmanager](packs/alertmanager/README.md) | (latest) |
-| bitbucker_runner | [Bitbucket-Runner](packs/bitbucket_runner/README.md) | (latest) |
-| example          | [Example](packs/example/README.md) | (latest) |
-| fluentbit        | [Fluentbit](packs/fluentbit/README.md) | (latest) |
-| grafana          | [Grafana](packs/grafana/README.md) | (latest) |
-| grafana loki     | [Grafana Loki](packs/loki/README.md) | (latest) |
-| grafana mimir    | [Grafana Mimir](packs/grafana_mimir/README.md) | (latest) |
-| payara_server    | [Payara Server](packs/payara_server/README.md) | (latest) |
-| prometheus       | [Prometheus](packs/prometheus/README.md) | (latest) |
-| traefik          | [Traefik](packs/traefik/README.md) | (latest) |
+| PACK-ID          | APPLICATION                                          |
+| :--              | :--                                                  |
+| activemq         | [ActiveMQ](packs/activemq/README.md)                 |
+| activemq-v2      | [ActiveMQ](packs/activemq-v2/README.md)              |
+| alert2teams      | [Alert Forwarding](packs/alert2teams/README.md)      |
+| alertmanager     | [Alertmanager](packs/alertmanager/README.md)         |
+| bitbucker_runner | [Bitbucket-Runner](packs/bitbucket_runner/README.md) |
+| example          | [Example](packs/example/README.md)                   |
+| fluentbit        | [Fluentbit](packs/fluentbit/README.md)               |
+| grafana          | [Grafana](packs/grafana/README.md)                   |
+| grafana loki     | [Grafana Loki](packs/loki/README.md)                 |
+| grafana mimir    | [Grafana Mimir](packs/grafana_mimir/README.md)       |
+| payara_server    | [Payara Server](packs/payara_server/README.md)       |
+| prometheus       | [Prometheus](packs/prometheus/README.md)             |
+| traefik          | [Traefik](packs/traefik/README.md)                   |
 
-## Usage
+## USAGE
 
 ```bash
-# Add entire pack registry (public)
+# Add pack registry (public)
 nomad-pack registry add -h
 nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry
 nomad-pack registry list
-```
 
-```bash
-# Get specific version
-nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry --ref payara_server-v0.0.4 --target payara_server
-```
+# Add specific version
+nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry --ref example-v0.0.1 --target example
 
-```bash
-# Run w/registry version
+# Render pack to console
+nomad-pack render example --registry=kred-public
+
+# Run pack w/registry version
 source nomad.env
-nomad-pack render payara_server --registry=kred-public
-nomad-pack plan   payara_server --registry=kred-public
-nomad-pack run    payara_server --registry=kred-public
-```
+nomad-pack plan   example --registry=kred-public
+nomad-pack run    example --registry=kred-public
 
-```bash
+# Generate variables-file
+nomad-pack generate var-file packs/example -o vars.hcl
+
 # Use packs locally (e.g. cloned from git)
 source nomad.env
 nomad-pack render  -name demo -var job_name=demo packs/example
@@ -50,7 +48,7 @@ nomad-pack run     -name demo -var job_name=demo packs/example
 nomad-pack destroy -name demo -var job_name=demo packs/example
 ```
 
-## References for writing packs
+## RESOURCES
 
   * [Public nomad-pack registry ](https://learn.hashicorp.com/tutorials/nomad/nomad-pack-writing-packs)
   * [Nomad-pack template-functions](https://learn.hashicorp.com/tutorials/nomad/nomad-pack-writing-packs#template-functions)
