@@ -4,7 +4,7 @@
 
 [[- define "consul_services_native" ]]
 
-  [[- range $idx, $service := .traefik.consul_services_native ]]
+  [[- range $idx, $service := .my.consul_services_native ]]
   
     service {
       port = [[ $service.port | toJson ]]

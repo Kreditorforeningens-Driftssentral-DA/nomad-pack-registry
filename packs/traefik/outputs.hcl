@@ -1,1 +1,1 @@
-Traefik deployed OK
+Traefik deployed OK!

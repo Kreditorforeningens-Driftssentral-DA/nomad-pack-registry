@@ -7,11 +7,6 @@
     task "prom2teams" {
       driver = "docker"
 
-      lifecycle {
-        hook = "prestart"
-        sidecar = true
-      }
-
       [[- if $res := .my.prom2teams_resources ]]
       
       resources {

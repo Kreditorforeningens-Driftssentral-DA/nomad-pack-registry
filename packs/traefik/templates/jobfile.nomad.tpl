@@ -1,13 +1,18 @@
 job "[[ template "job_name" . ]]" {
-  datacenters = [[ .traefik.datacenters | toStringList ]]
   
-  [[- if $namespace := .traefik.namespace ]]
-  namespace = [[ $namespace | toJson ]][[ end ]]
+  [[- with .my.datacenters ]]
+  datacenters = [[ . | toStringList ]]
+  [[- end ]]
   
-  [[- if $region := .traefik.region ]]
-  region = [[ $region | toJson ]][[ end ]]
+  [[- with .my.namespace ]]
+  namespace = [[ . | toStringList ]]
+  [[- end ]]
+  
+  [[- with .my.region ]]
+  region = [[ . | toJson ]]
+  [[- end ]]
 
-  [[- range $constraint := .traefik.constraints ]]
+  [[- range $constraint := .my.constraints ]]
 
   constraint {
     attribute = [[ $constraint.attribute | toJson ]]
@@ -16,52 +21,50 @@ job "[[ template "job_name" . ]]" {
     [[- if $constraint.operator ]]
     operator  = [[ $constraint.operator | toJson ]][[ end ]]
   }
-
   [[- end ]]
 
-  group "main" {
-
+  group "app" {
     network {
-      mode = "bridge"
-
-      [[- range $port := .traefik.ports ]]
+      [[- with .my.network_mode ]]
+      mode = [[ . | toJson ]]
+      [[- end ]]
+      
+      [[- range $port := .my.ports ]]
       port [[ $port.label | toJson ]] {
-        to = [[ $port.to ]]
-        
+        [[- if gt $port.to 0 ]]
+        to = [[ $port.to ]][[ end ]]
+
         [[- if gt $port.static 0 ]]
         static = [[ $port.static ]][[ end ]]
       }
       [[- end ]]
       
-      [[- range $port := .traefik.connect_exposes ]]
+      [[- range $port := .my.connect_exposes ]]
       port [[ $port.port_label | toJson ]] {
         to = -1
       }
       [[- end ]]
     }
 
-    [[- if $disk := .traefik.ephemeral_disk ]]
+    [[- with .my.ephemeral_disk ]]
 
     ephemeral_disk {
-      migrate = [[ $disk.migrate ]]
-      sticky = [[ $disk.sticky ]]
-      size = [[ $disk.size ]]
+      migrate = [[ .migrate ]]
+      sticky  = [[ .sticky ]]
+      size    = [[ .size ]]
     }
 
     [[- end ]]
 
-    [[- if .traefik.consul_services ]]
+    [[- if .my.consul_services ]]
     [[- template "consul_services" . ]][[ end ]]
     
-    [[- if .traefik.consul_services_native ]]
+    [[- if .my.consul_services_native ]]
     [[- template "consul_services_native" . ]][[ end ]]
 
-    [[- if .traefik.task_fluentbit_enabled ]]
-    [[- template "task_fluentbit" . ]][[ end ]]
-
     [[- template "task_traefik" . ]]
-  }
 
-  [[- if .traefik.group_demo_enabled ]]
-  [[- template "group_demo" . ]][[ end ]]
+    [[- if .my.task_fluentbit_enabled ]]
+    [[- template "task_fluentbit" . ]][[ end ]]
+  }
 }
