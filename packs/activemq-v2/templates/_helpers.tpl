@@ -117,7 +117,8 @@
 =================================================
  `mount` helper
 
- This helper creates a file in the /local path of the task.
+ This helper mounts a templated file from the 'local'
+ path of the task into the container filesystem.
 =================================================
 */ -]]
 
@@ -127,7 +128,7 @@
 
         mount {
           type   = "bind"
-          source = "/local/[[ $mnt.filename ]]"
+          source = "local/[[ $mnt.filename ]]"
           target = "[[ $mnt.mountpath ]]/[[ $mnt.filename ]]"
         }
 [[ end ]]
