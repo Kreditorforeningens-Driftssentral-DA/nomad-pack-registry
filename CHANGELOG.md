@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## April 25 (2024)
+  * **[ACTIVEMQ-v2](packs/activemq-v2/README.md):** v0.1.1 - ephemeral-disk support
+
 ## April 19 (2024)
   * **[ACTIVEMQ-v2](packs/activemq-v2/README.md):** See [CHANGELOG.md](packs/activemq-v2/CHANGELOG.md), commit by [RR]
 

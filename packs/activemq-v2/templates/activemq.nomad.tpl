@@ -19,6 +19,16 @@ job [[ template "job_name" . ]] {
     [[- template "constraint" (var "constraints" .) ]]
     [[- template "service" (var "services" .) ]]
 
+    [[- with $disk := (var "ephemeral_disk" .) ]]
+    
+    ephemeral_disk {
+      migrate = [[ $disk.migrate ]]
+      sticky  = [[ $disk.sticky ]]
+      size    = [[ $disk.size ]]
+    }
+
+    [[- end ]]
+
     network {
       mode = [[ var "network_mode" . | quote ]]
 

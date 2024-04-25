@@ -61,6 +61,16 @@ variable "ports" {
   }]
 }
 
+variable "ephemeral_disk" {
+  description = "Persist '/alloc/data' content between allocations."
+  
+  type = object({
+    sticky  = bool   // Try to place new alloc on same host; migrate /local & /alloc/data
+    migrate = bool   // Try to migrate data, even if host changes. Implies 'sticy=true'
+    size    = number // Size to reserve on host. Not enforced, but used for scheduling
+  })
+}
+
 ////////////////////////
 // Service Variables
 ////////////////////////
