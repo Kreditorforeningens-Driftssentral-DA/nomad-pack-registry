@@ -1,10 +1,14 @@
 # CHANGELOG
 
 ## April 25 (2024)
-  * **[ACTIVEMQ-v2](packs/activemq-v2/README.md):** v0.1.1 - ephemeral-disk support
+  * **[PAYARA-SERVER-v2](packs/payara-server-v2/README.md):** v0.1.1 .:[RR]:.
+
+## April 25 (2024)
+  * **[PAYARA-SERVER-v2](packs/payara-server-v2/README.md):** Initial release; see [CHANGELOG.md](packs/payara-server-v2/CHANGELOG.md), .:[RR]:.
+  * **[ACTIVEMQ-v2](packs/activemq-v2/README.md):** v0.1.1 - ephemeral-disk support, .:[RR]:.
 
 ## April 19 (2024)
-  * **[ACTIVEMQ-v2](packs/activemq-v2/README.md):** See [CHANGELOG.md](packs/activemq-v2/CHANGELOG.md), commit by [RR]
+  * **[ACTIVEMQ-v2](packs/activemq-v2/README.md):** See [CHANGELOG.md](packs/activemq-v2/CHANGELOG.md), commit by .:[RR]:.
 
 ## April 13, 2023
   * [ALERT2TEAMS](packs/alert2teams/README.md): v0.1.1 - See [changelog](packs/alert2teams/CHANGELOG.md)
