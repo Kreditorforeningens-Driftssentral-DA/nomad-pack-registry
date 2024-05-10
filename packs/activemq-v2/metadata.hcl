@@ -5,7 +5,7 @@ app {
 
 pack {
   name    = "activemq-v2"
-  version = "0.1.1"
+  version = "0.1.2"
   
   description = <<-HEREDOC
     This is a pack for deploying Apache ActiveMQ (Classic).

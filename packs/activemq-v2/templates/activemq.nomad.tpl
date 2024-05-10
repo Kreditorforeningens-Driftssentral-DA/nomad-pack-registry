@@ -2,7 +2,7 @@ job [[ template "job_name" . ]] {
   [[- with (var "region" .) ]]
   region      = [[ . ]][[ end ]]
   [[- with (var "namespace" .) ]]
-  namespace   = [[ . ]][[ end ]]
+  namespace   = [[ . | quote ]][[ end ]]
   type        = "service"
   datacenters = [[ var "datacenters" . | toStringList ]]
 
