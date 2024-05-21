@@ -272,8 +272,8 @@ variable "fluentbit_config" {
   })
 
   default = {
-    filename  = "fluentbit.yml"
-    mountpath = "/etc/fluentbit"
+    filename  = "override.yml"
+    mountpath = ""
     content = <<-HEREDOC
     service:
       daemon: off
@@ -303,6 +303,6 @@ variable "fluentbit_args"  {
   
   default = [
     "/fluent-bit/bin/fluent-bit",
-    "-c", "/etc/fluentbit/fluentbit.yml",
+    "-c", "/local/override.yml",
   ]
 }
