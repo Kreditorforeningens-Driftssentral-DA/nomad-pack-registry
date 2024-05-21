@@ -272,7 +272,7 @@ variable "fluentbit_config" {
   })
 
   default = {
-    filename  = "fluentbit.conf"
+    filename  = "fluentbit.yml"
     mountpath = "/etc/fluentbit"
     content = <<-HEREDOC
     service:
@@ -295,4 +295,14 @@ variable "fluentbit_config" {
         match: '*.prometheus'
     HEREDOC
   }
+}
+
+variable "fluentbit_args"  {
+  description = "N/A"
+  type        = list(string)
+  
+  default = [
+    "/fluent-bit/bin/fluent-bit",
+    "-c", "/etc/fluentbit/fluentbit.yml",
+  ]
 }

@@ -82,10 +82,7 @@
       config {
         image = [[ (var "fluentbit_image" .) | toJson ]]
         
-        args = [
-          "/fluent-bit/bin/fluent-bit",
-          "-c", "/etc/fluentbit/fluentbit.yml",
-        ]
+        args = [[ (var "fluentbit_args" .) | toJson ]]
         [[- template "mount" (var "fluentbit_config" .) ]]
       }
     }
