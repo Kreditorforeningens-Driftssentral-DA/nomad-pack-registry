@@ -1,5 +1,7 @@
 # PAYARA_SERVER
 
+NOTE: Running v1 packs with nomad-pack v0.1.0 or newer, requires the following flag: `--parser-v1`
+
 ## Pack requirements
 * docker-driver (consul-connect)
 * cni-drivers (bridged networking)

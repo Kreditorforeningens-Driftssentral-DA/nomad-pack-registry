@@ -24,26 +24,21 @@ job "[[ template "job_name" . ]]" {
 
   [[- end ]]
 
-  update {
-    max_parallel      = 1
-    health_check      = "checks"
-    min_healthy_time  = "10s"
-    healthy_deadline  = "10m"
-    progress_deadline = "15m"
-    auto_revert       = true
-  }
-
   group "main" {
     
     [[- if ne ($scale := .payara_server.scale) 1 ]]
     count = [[ $scale ]][[ end ]]
 
+    [[- with .payara_server.restart_policy ]]
+
     restart {
-      interval = "30m"
-      attempts = 3
-      delay    = "10m" // 25 percent random jitter
-      mode     = "fail"
+      interval = [[ .interval | quote ]]
+      attempts = [[ .attempts ]]
+      delay    = [[ .delay | quote ]]
+      mode     = [[ .mode | quote ]]
     }
+
+    [[- end ]]
 
     meta {
     [[- range $k,$v := .payara_server.meta ]]
@@ -86,4 +81,17 @@ job "[[ template "job_name" . ]]" {
 
     [[- template "task_payara" . ]]
   }
+
+  [[- with .payara_server.update_policy ]]
+
+  update {
+    auto_revert       = [[ .auto_revert ]]
+    max_parallel      = [[ .max_parallel ]]
+    health_check      = [[ .health_check | quote ]]
+    min_healthy_time  = [[ .min_healthy_time | quote ]]
+    healthy_deadline  = [[ .healthy_deadline | quote ]]
+    progress_deadline = [[ .progress_deadline | quote ]]
+  }
+
+  [[- end ]]
 }

@@ -1,6 +1,6 @@
-/////////////////////////////////////////////////
+////////////////////////
 // SCHEDULING
-/////////////////////////////////////////////////
+////////////////////////
 
 variable "job_name" {
   type = string
@@ -26,6 +26,7 @@ variable "scale" {
 
 variable "meta" {
   type = map(string)
+  
   default = {
     "deployment-id" = "1981.05.v11"
   }
@@ -37,6 +38,7 @@ variable "ports" {
     to     = number
     static = number
   }))
+  
   default = [{
     label = "http"
     to = 8080
@@ -58,11 +60,13 @@ variable "ephemeral_disk" {
 
 variable "constraints" {
   description = "Constraints to apply to the entire job."
+  
   type = list(object({
     attribute = string
     operator  = string
     value     = string
   }))
+  
   default = [{
     attribute = "$${attr.kernel.name}"
     value = "linux"
@@ -70,12 +74,57 @@ variable "constraints" {
   }]
 }
 
-//////////////////////////////////
+////////////////////////
+// Updates & Restart
+////////////////////////
+
+variable "restart_policy" {
+  description = "Note: 25 percent random jitter applied to the 'delay' parameter"
+
+  type = object({
+    attempts = number
+    delay    = string
+    interval = string
+    mode     = string
+  })
+
+  default = {
+    attempts = 1
+    delay    = "30s"
+    interval = "5m"
+    mode     = "fail"
+  }
+}
+
+variable "update_policy" {
+  description = "N/A"
+
+  type = object({
+    auto_revert       = bool
+    max_parallel      = number
+    health_check      = string
+    min_healthy_time  = string
+    healthy_deadline  = string
+    progress_deadline = string
+  })
+
+  default = {
+    auto_revert       = true
+    max_parallel      = 1
+    health_check      = "checks"
+    min_healthy_time  = "10s"
+    healthy_deadline  = "10m"
+    progress_deadline = "15m"
+  }
+}
+
+////////////////////////
 // CONSUL payara
-//////////////////////////////////
+////////////////////////
 
 variable "consul_services" {
   description = "Consul services."
+  
   type = list(object({
     port = number
     name = string
@@ -84,6 +133,7 @@ variable "consul_services" {
     sidecar_cpu = number
     sidecar_memory = number
   }))
+
   default = [{
     port = 8080
     name = "payara-http"
@@ -96,26 +146,30 @@ variable "consul_services" {
 
 variable "connect_upstreams" {
   description = "Consul connect upstreams. Managed by FIRST defined consul service."
+  
   type = list(object({
     name       = string
     local_port = number
   }))
+  
   default = []
 }
 
 variable "connect_exposes" {
   description = "Consul connect exposed http-paths. Managed by FIRST defined consul service."
+  
   type = list(object({
     port_label = string
     local_port = number
     path       = string
   }))
+  
   default = []
 }
 
-/////////////////////////////////////////////////
+////////////////////////
 // TASK payara
-/////////////////////////////////////////////////
+////////////////////////
 
 variable "payara_image" {
   type = string
@@ -129,16 +183,18 @@ variable "payara_resources" {
     memory     = number
     memory_max = number
   })
+
   default = {
-    cpu = 100
+    cpu        = 100
     cpu_strict = false
-    memory = 768
-    memory_max = 768
+    memory     = 1024
+    memory_max = 2048
   }
 }
 
 variable "payara_artifacts" {
   description = "Download custom artifacts before starting task."
+  
   type = list(object({
     source      = string
     destination = string
@@ -159,6 +215,7 @@ variable "payara_environment_file" {
 
 variable "payara_files" {
   description = "Custom file to render to disk at startup."
+  
   type = list(object({
     destination = string
     b64encode   = bool
@@ -168,6 +225,7 @@ variable "payara_files" {
 
 variable "payara_files_local" {
   description = "Custom file to render to disk at startup. Reads from local file."
+  
   type = list(object({
     destination = string
     b64encode   = bool
@@ -177,15 +235,16 @@ variable "payara_files_local" {
 
 variable "payara_mounts" {
   description = "Mount/override file(s) to container (adds layer)."
+  
   type = list(object({
     source = string
     target = string
   }))
 }
 
-/////////////////////////////////////////////////
+////////////////////////
 // TASK maven
-/////////////////////////////////////////////////
+////////////////////////
 
 variable "task_enabled_maven" {
   type    = bool
@@ -206,9 +265,9 @@ variable "maven_resources" {
     memory_max = number
   })
   default = {
-    cpu = 100
+    cpu        = 100
     cpu_strict = false
-    memory = 128
+    memory     = 128
     memory_max = 384
   }
 }
@@ -237,9 +296,9 @@ variable "maven_artifacts" {
   default = []
 }
 
-/////////////////////////////////////////////////
+////////////////////////
 // TASK fluent-bit
-/////////////////////////////////////////////////
+////////////////////////
 
 variable "task_enabled_fluentbit" {
   type = bool
@@ -259,9 +318,9 @@ variable "fluentbit_resources" {
     memory_max = number
   })
   default = {
-    cpu = 100
+    cpu        = 100
     cpu_strict = false
-    memory = 100
+    memory     = 100
     memory_max = 100
   }
 }
