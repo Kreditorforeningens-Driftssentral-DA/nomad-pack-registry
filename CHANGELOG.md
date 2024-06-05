@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## June 5 (2024)
+  * **[PAYARA-SERVER](packs/payara-server/README.md):** v0.1.0 .:[RR]:.
+
 ## April 25 (2024)
   * **[PAYARA-SERVER-v2](packs/payara-server-v2/README.md):** v0.1.1 .:[RR]:.
 
