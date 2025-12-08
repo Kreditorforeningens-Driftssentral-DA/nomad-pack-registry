@@ -58,6 +58,13 @@ job "[[ template "job_name" . ]]" {
     
     network {
       mode = "bridge"
+
+      [[- if $dns_servers := .payara_server.dns_servers ]]
+      dns {
+        servers = [[ $dns_servers | toStringList ]]
+        options = [[ .payara_server.dns_options | toStringList ]]
+      }
+      [[- end ]]
       
       [[- range $port := .payara_server.ports ]]
       port [[ $port.label | toJson ]] {

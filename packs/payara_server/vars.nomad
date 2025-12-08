@@ -3,7 +3,7 @@
 // SCHEDULING
 /////////////////////////////////////////////////
 
-job_name    = "demo-payara"
+job_name    = "demo-payara-server"
 datacenters = ["dc1"]
 region      = "global"
 namespace   = "default"
@@ -22,6 +22,8 @@ ports = [{
   to = 4848
   static = -1
 }]
+
+dns_servers = ["9.9.9.9", "208.67.222.222", "1.1.1.1"]
 
 ephemeral_disk = {
   migrate = false

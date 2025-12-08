@@ -13,6 +13,23 @@ NOTE: Running v1 packs with nomad-pack v0.1.0 or newer, requires the following f
 
 ## Example use
 
+```bash
+# Run with nomad-pack binary (from local folder)
+nomad-pack render --parser-v1 -f payara_server/vars.nomad payara_server/
+
+# Run with nomad-pack binary (from registry)
+nomad-pack registry add kred-public https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry --target=payara_server
+nomad-pack render --registry kred-public --parser-v1 -f vars.nomad payara_server
+```
+
+```bash
+# Run with podman/docker
+# Add registry with custom Dockerfile, if not mapping folder
+alias nomad-pack-x='podman run --rm -it -v ./payara_server/:/payara_server:ro,z  docker.io/hashicorp/nomad-pack:latest'
+nomad-pack-x render --parser-v1 -f /payara_server/vars.nomad /payara_server/
+unalias nomad-pack-x
+```
+
 ```hcl
 job_name = "demo-payara"
 

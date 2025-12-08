@@ -243,6 +243,7 @@ variable "fluentbit_resources" {
 variable "fluentbit_env" {
   description = "Environment variables in the task."
   type        = map(string)
+  default     = null
 }
 
 variable "fluentbit_config" {

@@ -7,5 +7,5 @@ pack {
   name = "payara_server"
   description = "This is a Payara Server (Community) pack"
   url = "https://github.com/Kreditorforeningens-Driftssentral-DA/nomad-pack-registry/packs/payara_server"
-  version = "0.1.0"
+  version = "0.1.1"
 }

@@ -50,6 +50,17 @@ variable "ports" {
   }]
 }
 
+variable "dns_servers" {
+  description = "Override the Nomad host dns-servers"
+  type        = list(string)
+  default     = []
+}
+
+variable "dns_options" {
+  type    = list(string)
+  default = ["timeout:2", "attempts:3", "rotate"]
+}
+
 variable "ephemeral_disk" {
   type = object({
     migrate = bool
